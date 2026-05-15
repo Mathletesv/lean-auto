@@ -446,6 +446,9 @@ partial def updownFunc (s : LamSort) : ReifM (Expr × Expr × Expr × Expr) :=
     | .int =>
       let ty := Expr.const ``Int []
       return (liftup₁ ty, liftdown₁ ty, ty, lift₁ ty)
+    | .rat =>
+      let ty := Expr.const ``Rat []
+      return (liftup₁ ty, liftdown₁ ty, ty, lift₁ ty)
     | .isto0 p =>
       let ty :=
         match p with
@@ -994,6 +997,7 @@ def processTypeExpr (e : Expr) : ReifM LamSort := do
   | .const ``Bool [] => return .base .bool
   | .const ``Nat [] => return .base .nat
   | .const ``Int [] => return .base .int
+  | .const ``Rat [] => return .base .rat
   | .const ``String [] => return .base .string
   | .const ``Empty [] => return .base .empty
   | .app (.const ``BitVec []) nExpr =>
@@ -1067,6 +1071,16 @@ def reifMapConstNilLvl : Std.HashMap Name LamTerm :=
     (``Int.le,            .base .ile),
     (``Int.lt,            .base .ilt),
     (`Int.ModEq,          .imodeq),
+    (`Rat.ofNat,          .base .rofNat),
+    (``Rat.ofInt,         .base .rofInt),
+    (``Rat.neg,           .base .rneg),
+    (``Rat.abs,           .base .rabs),
+    (``Rat.add,           .base .radd),
+    (``Rat.sub,           .base .rsub),
+    (``Rat.mul,           .base .rmul),
+    (``Rat.div,           .base .rdiv),
+    (`Rat.le,             .base .rle),
+    (`Rat.lt,             .base .rlt),
     (``String.length,     .base .slength),
     (``String.append,     .base .sapp),
     (``String.isPrefixOf, .base .sprefixof),
@@ -1148,6 +1162,7 @@ def processSimpleApp (fn arg : Expr) : ReifM (Option LamTerm) := do
   let fn := fn.getAppFn
   let .const name lvls := fn
     | return .none
+  trace[debug] "process app more: {args} {fn} {name} {lvls}"
   match args.toList with
   | [] => throwError "{decl_name%} :: Unexpected error"
   | [arg] =>
@@ -1198,19 +1213,26 @@ open LamCstrD in
 def reifMapLam0Arg2NoLit : Std.HashMap (Name × Name) (Expr × LamTerm) :=
   Std.HashMap.ofList [
     ((``NatCast.natCast, ``Int), (.const ``Int.ofNat [], .base .iofNat)),
+    ((``NatCast.natCast, ``Rat), (.const ``Rat.ofNat [], .base .rofNat)),
+    ((``IntCast.intCast, ``Rat), (.const ``Rat.ofInt [], .base .rofInt)),
     ((``Neg.neg, ``Int),         (.const ``Int.neg [], .base .ineg)),
+    ((``Neg.neg, ``Rat),         (.const ``Rat.neg [], .base .rneg)),
     ((`Abs.abs, ``Int),          (.const ``Int.abs [], .base .iabs)),
     ((``LE.le, ``Nat),           (.const ``Nat.le [], .base .nle)),
     ((``LE.le, ``Int),           (.const ``Int.le [], .base .ile)),
+    ((``LE.le, ``Rat),           (.const ``Rat.le [], .base .rle)),
     ((``LE.le, ``String),        (.const ``String.le [], .base .sle)),
     ((``GE.ge, ``Nat),           (.const ``Nat.ge [], .nge)),
     ((``GE.ge, ``Int),           (.const ``Int.ge [], .ige)),
+    ((``GE.ge, ``Rat),           (.const ``Rat.ge [], .rge)),
     ((``GE.ge, ``String),        (.const ``String.ge [], .sge)),
     ((``LT.lt, ``Nat),           (.const ``Nat.lt [], .base .nlt)),
     ((``LT.lt, ``Int),           (.const ``Int.lt [], .base .ilt)),
+    ((``LT.lt, ``Rat),           (.const ``Rat.lt [], .base .rlt)),
     ((``LT.lt, ``String),        (.const ``String.lt [], .base .slt)),
     ((``GT.gt, ``Nat),           (.const ``Nat.gt [], .ngt)),
     ((``GT.gt, ``Int),           (.const ``Int.gt [], .igt)),
+    ((``GT.gt, ``Rat),           (.const ``Rat.gt [], .rgt)),
     ((``GT.gt, ``String),        (.const ``String.gt [], .sgt)),
     ((``Max.max, ``Nat),         (.const ``Nat.max [], .base .nmax)),
     ((``Max.max, ``Int),         (.const ``Int.max [], .base .imax)),
@@ -1254,12 +1276,16 @@ def reifMapLam0Arg4NoLit : Std.HashMap (Name × Name × Name) (Expr × LamTerm) 
   Std.HashMap.ofList [
     ((``HAdd.hAdd, ``Nat, ``Nat),             (.const ``Nat.add [], .base .nadd)),
     ((``HAdd.hAdd, ``Int, ``Int),             (.const ``Int.add [], .base .iadd)),
+    ((``HAdd.hAdd, ``Rat, ``Rat),             (.const ``Rat.add [], .base .radd)),
     ((``HSub.hSub, ``Nat, ``Nat),             (.const ``Nat.sub [], .base .nsub)),
     ((``HSub.hSub, ``Int, ``Int),             (.const ``Int.sub [], .base .isub)),
+    ((``HSub.hSub, ``Rat, ``Rat),             (.const ``Rat.sub [], .base .rsub)),
     ((``HMul.hMul, ``Nat, ``Nat),             (.const ``Nat.mul [], .base .nmul)),
     ((``HMul.hMul, ``Int, ``Int),             (.const ``Int.mul [], .base .imul)),
+    ((``HMul.hMul, ``Rat, ``Rat),             (.const ``Rat.mul [], .base .rmul)),
     ((``HDiv.hDiv, ``Nat, ``Nat),             (.const ``Nat.div [], .base .ndiv)),
     ((``HDiv.hDiv, ``Int, ``Int),             (.const ``Int.tdiv [], .base .idiv)),
+    ((``HDiv.hDiv, ``Rat, ``Rat),             (.const ``Rat.div [], .base .rdiv)),
     ((``HAppend.hAppend, ``String, ``String), (.const ``String.append [], .base .sapp))
   ]
 
@@ -1341,6 +1367,7 @@ def processLam0Arg2 (e fn arg₁ _arg₂ : Expr) : MetaM (Option LamTerm) := do
   return .none
 
 def processLam0Arg3 (e fn arg₁ arg₂ _arg₃ : Expr) : MetaM (Option LamTerm) := do
+  trace[debug] "happened : {e} {fn} {arg₁} {arg₂} {_arg₃}"
   match fn with
   | .const ``OfNat.ofNat _ =>
     match arg₁ with
@@ -1355,6 +1382,12 @@ def processLam0Arg3 (e fn arg₁ arg₂ _arg₃ : Expr) : MetaM (Option LamTerm)
         let .lit (.natVal nv) := arg₂
           | throwError "{decl_name%} :: OfNat.ofNat instance is not based on a nat literal"
         return .some (.mkIOfNat (.base (.natVal nv)))
+      return .none
+    | .const ``Rat _ =>
+      if (← Meta.isDefEqD e (.app (.const `Auto.LamCstrD.Rat.ofNat []) arg₂)) then
+        let .lit (.natVal nv) := arg₂
+          | throwError "{decl_name%} :: OfNat.ofNat instance is not based on a nat literal"
+        return .some (.mkROfNat (.base (.natVal nv)))
       return .none
     | .app (.const ``BitVec []) nExpr =>
       if let .some n ← Meta.evalNat nExpr then
@@ -1430,14 +1463,17 @@ def processComplexTermExpr (e : Expr) : MetaM (Option LamTerm) := do
   | _ => return .none
 
 def processNewTermExpr (e : Expr) : ReifM LamTerm := do
+  trace[debug] "not atomized: {e}"
   let e := e.eta
   match e with
   | .lit l => return processSimpleLit l
   | .const name lvls => do
+    trace[debug] "process const {name} {lvls}"
     match ← processSimpleConst name lvls with
     | .some t => return t
     | .none => processOther e
   | .app fn arg => do
+    trace[debug] "process app {fn} {arg}"
     match ← processSimpleApp fn arg with
     | .some t => return t
     | .none => processOther e
@@ -1451,11 +1487,14 @@ where
 def processTermExpr (lctx : Std.HashMap FVarId Nat) (e : Expr) : ReifM LamTerm := do
   if let .fvar fid := e then
     if let .some n := deBruijn? lctx fid then
+      trace[debug] "found: {n}, bvar: {Auto.Embedding.Lam.LamTerm.bvar n}"
       return .bvar n
   let e ← Reif.resolveVal e
   let varMap ← getVarMap
+  trace[debug] "new e: {e}, type: {← Lean.Meta.inferType e}"
   -- If the expression has already been processed
   if let .some id := varMap.get? e then
+    trace[debug] "check atomization: {Auto.Embedding.Lam.LamTerm.atom id}"
     return .atom id
   -- If the expression has not been processed
   processNewTermExpr e
@@ -1467,22 +1506,29 @@ where
 
 partial def reifTerm (lctx : Std.HashMap FVarId Nat) : Expr → ReifM LamTerm
 | .app fn arg => do
+  trace[debug] "case app {fn}, {arg}"
   let lamFn ← reifTerm lctx fn
   let lamArg ← reifTerm lctx arg
   let argTy ← Meta.inferType arg
   let lamTy ← reifType argTy
+  trace[debug] "for {fn}, {arg}: lamFn: {lamFn}, lamArg: {lamArg}, argTy: {argTy}, lamTy: {lamTy}"
   return .app lamTy lamFn lamArg
 | .lam name ty body binfo => do
+  trace[debug] "case lam {name}, {ty}, {body}"
   let lamTy ← reifType ty
   let body ← Meta.withLocalDecl name binfo ty fun fvar => do
     let body' := body.instantiate1 fvar
     reifTerm (lctx.insert fvar.fvarId! lctx.size) body'
+  trace[debug] "lam {name} into {lamTy}, {body}"
   return .lam lamTy body
-| e => processTermExpr lctx e
+| e => do
+  trace[debug] "case e: {e}, type: {← Lean.Meta.inferType e}"
+  processTermExpr lctx e
 
 def reifTermCheckType (e : Expr) : ReifM (LamSort × LamTerm) := do
   let t ← reifTerm .emptyWithCapacity e
   let ltv ← getLamTyValAtMeta
+  trace[debug] "reifTermCheckType e: {e}, type: {← Lean.Meta.inferType e}, t: {t}"
   let .some s := t.lamCheck? ltv Embedding.Lam.dfLCtxTy
     | throwError "{decl_name%} :: LamTerm {t} is not type correct"
   return (s, t)
@@ -1490,9 +1536,11 @@ def reifTermCheckType (e : Expr) : ReifM (LamSort × LamTerm) := do
 /-- Return the positions of the reified and `resolveImport`-ed facts within the `validTable` -/
 def reifFacts (facts : Array UMonoFact) : ReifM (Array LamTerm) :=
   facts.mapM (fun ⟨proof, ty, deriv⟩ => do
+    trace[debug] "proof: {proof}, ty: {ty}, deriv: {deriv}"
     let (s, lamty) ← reifTermCheckType ty
     if s != .base .prop then
       throwError "{decl_name%} :: Fact {lamty} is not of type `prop`"
+    trace[debug] "s: {s}, lamty: {lamty}"
     trace[auto.lamReif.printResult] "Successfully reified proof of {← Meta.zetaReduce ty} to λterm `{lamty}`"
     newAssertion proof deriv lamty
     return lamty)

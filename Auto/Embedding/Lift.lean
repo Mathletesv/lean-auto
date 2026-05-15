@@ -108,6 +108,42 @@ def imaxLift.{u} (m n : GLift.{1, u} Int) :=
 def iminLift.{u} (m n : GLift.{1, u} Int) :=
   GLift.up (min m.down n.down)
 
+def rofNatLift.{u} (m : GLift.{1, u} Nat) :=
+  GLift.up (Rat.ofInt (Int.ofNat m.down))
+
+def rofIntLift.{u} (m : GLift.{1, u} Int) :=
+  GLift.up (Rat.ofInt m.down)
+
+def rnegLift.{u} (m : GLift.{1, u} Rat) :=
+  GLift.up (Rat.neg m.down)
+
+def rabsLift.{u} (m : GLift.{1, u} Rat) :=
+  GLift.up (ite (m.down < -m.down) (-m.down) m.down)
+
+def raddLift.{u} (m n : GLift.{1, u} Rat) :=
+  GLift.up (Rat.add m.down n.down)
+
+def rsubLift.{u} (m n : GLift.{1, u} Rat) :=
+  GLift.up (Rat.sub m.down n.down)
+
+def rmulLift.{u} (m n : GLift.{1, u} Rat) :=
+  GLift.up (Rat.mul m.down n.down)
+
+def rdivLift.{u} (m n : GLift.{1, u} Rat) :=
+  GLift.up (Rat.div m.down n.down)
+
+def rleLift.{u} (m n : GLift.{1, u} Rat) :=
+  GLift.up (LE.le m.down n.down)
+
+def rltLift.{u} (m n : GLift.{1, u} Rat) :=
+  GLift.up (LT.lt m.down n.down)
+
+def rmaxLift.{u} (m n : GLift.{1, u} Rat) :=
+  GLift.up (max m.down n.down)
+
+def rminLift.{u} (m n : GLift.{1, u} Rat) :=
+  GLift.up (min m.down n.down)
+
 def sappLift.{u} (m n : GLift.{1, u} String) :=
   GLift.up (String.append m.down n.down)
 

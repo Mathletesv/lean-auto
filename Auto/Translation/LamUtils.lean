@@ -17,6 +17,13 @@ namespace LamCstrD
   abbrev Int.gt (a b : Int) := Int.lt b a
   abbrev Int.max (x y : Int) : Int := Max.max x y
   abbrev Int.min (x y : Int) : Int := Min.min x y
+  abbrev Rat.ofNat (n : Nat) := Rat.ofInt (Int.ofNat n)
+  abbrev Rat.le (a b : Rat) := LE.le a b
+  abbrev Rat.lt (a b : Rat) := LT.lt a b
+  abbrev Rat.ge (a b : Rat) := Rat.le b a
+  abbrev Rat.gt (a b : Rat) := Rat.lt b a
+  abbrev Rat.max (x y : Rat) : Rat := Max.max x y
+  abbrev Rat.min (x y : Rat) : Rat := Min.min x y
   abbrev String.ge (a b : String) : Prop := b = a ∨ b < a
   abbrev String.gt (a b : String) : Prop := b < a
   abbrev BitVec.uge (a b : BitVec n) : Bool := BitVec.ule b a
@@ -179,6 +186,7 @@ namespace Lam2D
   | .bool    => .const ``Bool []
   | .nat     => .const ``Nat []
   | .int     => .const ``Int []
+  | .rat     => .const ``Rat []
   | .isto0 p =>
     match p with
     | .xH => .const ``String []
@@ -234,6 +242,21 @@ namespace Lam2D
   | .ilt      => return .const ``Int.lt []
   | .imax     => return .const ``Int.max []
   | .imin     => return .const ``Int.min []
+
+  def interpRatConstAsUnlifted : RatConst → CoreM Expr
+  | .ratVal n d => return toExpr (mkRat n d)
+  | .rofNat   => return .const ``Rat.ofNat []
+  | .rofInt   => return .const ``Rat.ofInt []
+  | .rneg     => return .const ``Rat.neg []
+  | .rabs     => return .const ``Rat.abs []
+  | .radd     => return .const ``Rat.add []
+  | .rsub     => return .const ``Rat.sub []
+  | .rmul     => return .const ``Rat.mul []
+  | .rdiv     => return .const ``Rat.div []
+  | .rle      => return .const ``Rat.le []
+  | .rlt      => return .const ``Rat.lt []
+  | .rmax     => return .const ``Rat.max []
+  | .rmin     => return .const ``Rat.min []
 
   def interpStringConstAsUnlifted : StringConst → CoreM Expr
   | .strVal s  => return .lit (.strVal s)
@@ -329,6 +352,7 @@ namespace Lam2D
   | .bcst bc    => Lam2D.interpBoolConstAsUnlifted bc
   | .ncst nc    => Lam2D.interpNatConstAsUnlifted nc
   | .icst ic    => Lam2D.interpIntConstAsUnlifted ic
+  | .rcst rc    => Lam2D.interpRatConstAsUnlifted rc
   | .scst sc    => Lam2D.interpStringConstAsUnlifted sc
   | .bvcst bvc  => Lam2D.interpBitVecConstAsUnlifted bvc
   | .ocst oc    => interpOtherConstAsUnlifted tyVal oc

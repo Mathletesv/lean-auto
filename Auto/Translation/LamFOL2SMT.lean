@@ -129,6 +129,7 @@ private def lamBaseSort2SSort : LamBaseSort → SSort
 -- `Nat ≅ {x : Int | x ≥ 0}`
 | .nat    => .app (.symb "Int") #[]
 | .int    => .app (.symb "Int") #[]
+| .rat    => .app (.symb "Real") #[]
 | .isto0 p =>
   match p with
   | .xH => .app (.symb "String") #[]
@@ -171,6 +172,11 @@ private def addNatConstraint? (sni : SMTNamingInfo) (name : String) (s : LamSort
 private def int2STerm : Int → STerm
 | .ofNat n   => .sConst (.num n)
 | .negSucc n => .qIdApp (QualIdent.ofString "-") #[.sConst (.num (Nat.succ n))]
+
+-- private def rat2STerm (r : Rat) : STerm :=
+--   let n := r.num
+--   let d := r.den
+
 
 private def lamBvOfNat2String (sni : SMTNamingInfo) (n : Nat) : TransM LamAtomic String := do
   if !(← hIn (.bvOfNat n)) then
@@ -222,6 +228,14 @@ private def lamBaseTerm2STerm_Arity2 (arg1 arg2 : STerm) : LamBaseTerm → Trans
 | .icst .ilt  => return .qStrApp "<" #[arg1, arg2]
 | .icst .imax => return .qStrApp "ite" #[.qStrApp "<=" #[arg1, arg2], arg2, arg1]
 | .icst .imin => return .qStrApp "ite" #[.qStrApp "<=" #[arg1, arg2], arg1, arg2]
+| .rcst .radd => return .qStrApp "+" #[arg1, arg2]
+| .rcst .rsub => return .qStrApp "-" #[arg1, arg2]
+| .rcst .rmul => return .qStrApp "*" #[arg1, arg2]
+| .rcst .rdiv => return .qStrApp "/" #[arg1, arg2]
+| .rcst .rle  => return .qStrApp "<=" #[arg1, arg2]
+| .rcst .rlt  => return .qStrApp "<" #[arg1, arg2]
+| .rcst .rmax => return .qStrApp "ite" #[.qStrApp "<=" #[arg1, arg2], arg2, arg1]
+| .rcst .rmin => return .qStrApp "ite" #[.qStrApp "<=" #[arg1, arg2], arg1, arg2]
 | .scst .sapp => return .qStrApp "str.++" #[arg1, arg2]
 | .scst .sle  => return .qStrApp "str.<=" #[arg1, arg2]
 | .scst .slt  => return .qStrApp "str.<" #[arg1, arg2]
@@ -270,6 +284,10 @@ private def lamBaseTerm2STerm_Arity1 (sni : SMTNamingInfo) (arg : STerm) : LamBa
 | .icst .inegSucc        => return .qStrApp "-" #[int2STerm (-1), arg]
 | .icst .ineg            => return .qStrApp "-" #[int2STerm 0, arg]
 | .icst .iabs            => return .qStrApp "abs" #[arg]
+| .rcst .rofNat          => return .qStrApp "/" #[arg, int2STerm 1]
+| .rcst .rofInt          => return .qStrApp "/" #[arg, int2STerm 1]
+| .rcst .rneg            => return .qStrApp "-" #[int2STerm 0, arg]
+| .rcst .rabs            => return .qStrApp "abs" #[arg]
 | .scst .slength         => return .qStrApp "str.len" #[arg]
 -- To SMT solvers `.bvofNat` is the same as `.bvofInt`
 | .bvcst (.bvofNat n)    => do

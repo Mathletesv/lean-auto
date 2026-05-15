@@ -22,6 +22,7 @@ inductive LamBaseSort
   | bool   : LamBaseSort            -- GLift `Bool`
   | nat    : LamBaseSort            -- GLift `Nat`
   | int    : LamBaseSort            -- GLift `Int`
+  | rat    : LamBaseSort            -- GLift `Rat`
   /--
     For each `p : Pos`, `isto0 p` is an interpreted sort
     `p`       `isto0 p`
@@ -44,6 +45,7 @@ def LamBaseSort.reprPrec (b : LamBaseSort) (n : Nat) :=
     | .bool => "bool"
     | .nat  => "nat"
     | .int  => "int"
+    | .rat  => "real"
     | .isto0 p =>
       match p with
       | .xH => "string"
@@ -62,6 +64,7 @@ def LamBaseSort.toString : LamBaseSort → String
 | .bool   => "Bool"
 | .nat    => "Nat"
 | .int    => "Int"
+| .rat    => "Real"
 | .isto0 p =>
   match p with
   | .xH => "String"
@@ -76,6 +79,7 @@ def LamBaseSort.beq : LamBaseSort → LamBaseSort → Bool
 | .bool,     .bool     => true
 | .nat,      .nat      => true
 | .int,      .int      => true
+| .rat,      .rat      => true
 | .isto0 p₁, .isto0 p₂ => p₁.beq p₂
 | .bv n,     .bv m     => n.beq m
 | _,         _         => false
@@ -90,6 +94,7 @@ theorem LamBaseSort.beq_refl : {b : LamBaseSort} → (b.beq b) = true
 | .bool    => rfl
 | .nat     => rfl
 | .int     => rfl
+| .rat     => rfl
 | .isto0 _ => Pos.beq_refl
 | .bv n    => Nat.beq_refl' n
 
@@ -99,37 +104,50 @@ theorem LamBaseSort.eq_of_beq_eq_true {b₁ b₂ : LamBaseSort} : b₁.beq b₂ 
   | .bool,    .bool    => fun _ => rfl
   | .nat,     .nat     => fun _ => rfl
   | .int,     .int     => fun _ => rfl
+  | .rat,     .rat     => fun _ => rfl
   | .isto0 p, .isto0 q => fun H => Pos.eq_of_beq_eq_true H ▸ rfl
   | .bv n,    .bv m    => fun H => Nat.eq_of_beq_eq_true H ▸ rfl
   | .prop,    .bool    => fun H => by cases H
   | .prop,    .nat     => fun H => by cases H
   | .prop,    .int     => fun H => by cases H
+  | .prop,    .rat     => fun H => by cases H
   | .prop,    .isto0 p => fun H => by cases H
   | .prop,    .bv m    => fun H => by cases H
   | .bool,    .prop    => fun H => by cases H
   | .bool,    .nat     => fun H => by cases H
   | .bool,    .int     => fun H => by cases H
+  | .bool,    .rat     => fun H => by cases H
   | .bool,    .isto0 p => fun H => by cases H
   | .bool,    .bv m    => fun H => by cases H
   | .nat,     .prop    => fun H => by cases H
   | .nat,     .bool    => fun H => by cases H
   | .nat,     .int     => fun H => by cases H
+  | .nat,     .rat     => fun H => by cases H
   | .nat,     .isto0 p => fun H => by cases H
   | .nat,     .bv m    => fun H => by cases H
   | .int,     .prop    => fun H => by cases H
   | .int,     .bool    => fun H => by cases H
   | .int,     .nat     => fun H => by cases H
+  | .int,     .rat     => fun H => by cases H
   | .int,     .isto0 p => fun H => by cases H
   | .int,     .bv m    => fun H => by cases H
+  | .rat,     .prop    => fun H => by cases H
+  | .rat,     .bool    => fun H => by cases H
+  | .rat,     .nat     => fun H => by cases H
+  | .rat,     .int     => fun H => by cases H
+  | .rat,     .isto0 p => fun H => by cases H
+  | .rat,     .bv m    => fun H => by cases H
   | .isto0 p, .prop    => fun H => by cases H
   | .isto0 p, .bool    => fun H => by cases H
   | .isto0 p, .nat     => fun H => by cases H
   | .isto0 p, .int     => fun H => by cases H
+  | .isto0 p, .rat     => fun H => by cases H
   | .isto0 p, .bv m    => fun H => by cases H
   | .bv n,    .prop    => fun H => by cases H
   | .bv n,    .bool    => fun H => by cases H
   | .bv n,    .nat     => fun H => by cases H
   | .bv n,    .int     => fun H => by cases H
+  | .bv n,    .rat     => fun H => by cases H
   | .bv n,    .isto0 p => fun H => by cases H
 
 instance : LawfulBEq LamBaseSort where
@@ -146,6 +164,7 @@ instance : LawfulBEq LamBaseSort where
 | .bool    => GLift Bool
 | .nat     => GLift Nat
 | .int     => GLift Int
+| .rat     => GLift Rat
 | .isto0 p => isto0_interp p
 | .bv n    => GLift (BitVec n)
 
@@ -476,6 +495,27 @@ mkConstFamily IntConst with
   | ilt      | ofIlt      | (.func (.base .int) (.func (.base .int) (.base .prop))) | "<"        | iltLift
   | imax     | ofImax     | (.func (.base .int) (.func (.base .int) (.base .int)))  | "imax"     | imaxLift
   | imin     | ofImin     | (.func (.base .int) (.func (.base .int) (.base .int)))  | "imin"     | iminLift
+
+inductive RatConst
+  | rneg | rabs | radd | rsub | rmul | rdiv
+  | rle | rlt | rmax | rmin
+  | ratVal (n : Int) (d : Nat) | rofNat | rofInt
+deriving Inhabited, Hashable, Lean.ToExpr
+
+mkConstFamily RatConst with
+  | ratVal (n : Int) (d : Nat) | ofRatVal | (.base .rat)                            | s!"{n}/{d} : Rat" | GLift.up (mkRat n d)
+  | rofNat   | ofROfNat   | (.func (.base .nat) (.base .rat))                       | "rofNat"   | rofNatLift
+  | rofInt   | ofROfInt   | (.func (.base .int) (.base .rat))                       | "rofInt"   | rofIntLift
+  | rneg     | ofRneg     | (.func (.base .rat) (.base .rat))                       | "-"        | rnegLift
+  | rabs     | ofRabs     | (.func (.base .rat) (.base .rat))                       | "rabs"     | rabsLift
+  | radd     | ofRadd     | (.func (.base .rat) (.func (.base .rat) (.base .rat)))  | "+"        | raddLift
+  | rsub     | ofRsub     | (.func (.base .rat) (.func (.base .rat) (.base .rat)))  | "-"        | rsubLift
+  | rmul     | ofRmul     | (.func (.base .rat) (.func (.base .rat) (.base .rat)))  | "*"        | rmulLift
+  | rdiv     | ofRdiv     | (.func (.base .rat) (.func (.base .rat) (.base .rat)))  | "/"        | rdivLift
+  | rle      | ofRle      | (.func (.base .rat) (.func (.base .rat) (.base .prop))) | "≤"        | rleLift
+  | rlt      | ofRlt      | (.func (.base .rat) (.func (.base .rat) (.base .prop))) | "<"        | rltLift
+  | rmax     | ofRmax     | (.func (.base .rat) (.func (.base .rat) (.base .rat)))  | "rmax"     | rmaxLift
+  | rmin     | ofRmin     | (.func (.base .rat) (.func (.base .rat) (.base .rat)))  | "rmin"     | rminLift
 
 inductive StringConst
   | strVal (s : String)
@@ -900,6 +940,7 @@ inductive LamBaseTerm
   | bcst     : BoolConst   → LamBaseTerm
   | ncst     : NatConst    → LamBaseTerm
   | icst     : IntConst    → LamBaseTerm
+  | rcst     : RatConst    → LamBaseTerm
   | scst     : StringConst → LamBaseTerm
   | bvcst    : BitVecConst → LamBaseTerm
   | ocst     : OtherConst  → LamBaseTerm
@@ -957,6 +998,19 @@ def LamBaseTerm.ile := LamBaseTerm.icst .ile
 def LamBaseTerm.ilt := LamBaseTerm.icst .ilt
 def LamBaseTerm.imax := LamBaseTerm.icst .imax
 def LamBaseTerm.imin := LamBaseTerm.icst .imin
+def LamBaseTerm.ratVal (n : Int) (d : Nat) := LamBaseTerm.rcst (.ratVal n d)
+def LamBaseTerm.rofNat := LamBaseTerm.rcst .rofNat
+def LamBaseTerm.rofInt := LamBaseTerm.rcst .rofInt
+def LamBaseTerm.rneg := LamBaseTerm.rcst .rneg
+def LamBaseTerm.rabs := LamBaseTerm.rcst .rabs
+def LamBaseTerm.radd := LamBaseTerm.rcst .radd
+def LamBaseTerm.rsub := LamBaseTerm.rcst .rsub
+def LamBaseTerm.rmul := LamBaseTerm.rcst .rmul
+def LamBaseTerm.rdiv := LamBaseTerm.rcst .rdiv
+def LamBaseTerm.rle := LamBaseTerm.rcst .rle
+def LamBaseTerm.rlt := LamBaseTerm.rcst .rlt
+def LamBaseTerm.rmax := LamBaseTerm.rcst .rmax
+def LamBaseTerm.rmin := LamBaseTerm.rcst .rmin
 def LamBaseTerm.strVal (s : String) := LamBaseTerm.scst (.strVal s)
 def LamBaseTerm.slength := LamBaseTerm.scst .slength
 def LamBaseTerm.sapp := LamBaseTerm.scst .sapp
@@ -1063,6 +1117,7 @@ def LamBaseTerm.reprPrec (l : LamBaseTerm) (n : Nat) :=
     | .bcst bc    => f!"bcst {BoolConst.reprPrec bc 1}"
     | .ncst nc    => f!"ncst {NatConst.reprPrec nc 1}"
     | .icst ic    => f!"icst {IntConst.reprPrec ic 1}"
+    | .rcst rc    => f!"rcst {RatConst.reprPrec rc 1}"
     | .scst sc    => f!"scst {StringConst.reprPrec sc 1}"
     | .bvcst bvc  => f!"bvcst {BitVecConst.reprPrec bvc 1}"
     | .ocst oc    => f!"ocst {OtherConst.reprPrec oc 1}"
@@ -1087,6 +1142,7 @@ def LamBaseTerm.toString : LamBaseTerm → String
 | .bcst bc    => s!"{bc}"
 | .ncst nc    => s!"{nc}"
 | .icst ic    => s!"{ic}"
+| .rcst rc    => s!"{rc}"
 | .scst sc    => s!"{sc}"
 | .bvcst bvc  => s!"{bvc}"
 | .ocst oc    => s!"{oc}"
@@ -1107,6 +1163,7 @@ def LamBaseTerm.beq : LamBaseTerm → LamBaseTerm → Bool
 | .bcst bc₁,    .bcst bc₂    => bc₁.beq bc₂
 | .ncst nc₁,    .ncst nc₂    => nc₁.beq nc₂
 | .icst ic₁,    .icst ic₂    => ic₁.beq ic₂
+| .rcst rc₁,    .rcst rc₂    => rc₁.beq rc₂
 | .scst sc₁,    .scst sc₂    => sc₁.beq sc₂
 | .bvcst l₁,    .bvcst l₂    => l₁.beq l₂
 | .ocst o₁,     .ocst o₂     => o₁.beq o₂
@@ -1129,6 +1186,7 @@ def LamBaseTerm.beq_refl {b : LamBaseTerm} : (b.beq b) = true := by
   case bcst bc => apply BEq.rfl (α := BoolConst)
   case ncst n => apply BEq.rfl (α := NatConst)
   case icst i => apply BEq.rfl (α := IntConst)
+  case rcst r => apply BEq.rfl (α := RatConst)
   case scst s => apply BEq.rfl (α := StringConst)
   case bvcst s => apply BEq.rfl (α := BitVecConst)
   case ocst o => apply BEq.rfl (α := OtherConst)
@@ -1140,6 +1198,7 @@ def LamBaseTerm.eq_of_beq_eq_true {b₁ b₂ : LamBaseTerm} (H : b₁.beq b₂) 
   case bcst.bcst.h bc₁ bc₂ => apply LawfulBEq.eq_of_beq (α := BoolConst) H
   case ncst.ncst.h nc₁ nc₂ => apply LawfulBEq.eq_of_beq (α := NatConst) H
   case icst.icst.h n₁ n₂ => apply LawfulBEq.eq_of_beq (α := IntConst) H
+  case rcst.rcst.h r₁ r₂ => apply LawfulBEq.eq_of_beq (α := RatConst) H
   case scst.scst.h s₁ s₂ => apply LawfulBEq.eq_of_beq (α := StringConst) H
   case bvcst.bvcst.h v₁ v₂ => apply LawfulBEq.eq_of_beq (α := BitVecConst) H
   case ocst.ocst.h o₁ o₂ => apply LawfulBEq.eq_of_beq (α := OtherConst) H
@@ -1154,6 +1213,7 @@ def LamBaseTerm.containsSort (b : LamBaseTerm) (s : LamSort) : Bool :=
   | .bcst _     => false
   | .ncst _     => false
   | .icst _     => false
+  | .rcst _     => false
   | .scst _     => false
   | .bvcst _    => false
   | .ocst _     => false
@@ -1179,6 +1239,7 @@ def LamBaseTerm.lamCheck (ltv : LamTyVal) : LamBaseTerm → LamSort
 | .bcst bc    => bc.lamCheck
 | .ncst nc    => nc.lamCheck
 | .icst ic    => ic.lamCheck
+| .rcst rc    => rc.lamCheck
 | .scst sc    => sc.lamCheck
 | .bvcst bvc  => bvc.lamCheck
 | .ocst oc    => oc.lamCheck
@@ -1204,6 +1265,7 @@ inductive LamBaseTerm.LamWF (ltv : LamTyVal) : LamBaseTerm → LamSort → Type
   | ofBcst       : (bcwf : BoolConst.LamWF bc s) → LamWF ltv (.bcst bc) s
   | ofNcst       : (ncwf : NatConst.LamWF nc s) → LamWF ltv (.ncst nc) s
   | ofIcst       : (icwf : IntConst.LamWF ic s) → LamWF ltv (.icst ic) s
+  | ofRcst       : (rcwf : RatConst.LamWF rc s) → LamWF ltv (.rcst rc) s
   | ofScst       : (scwf : StringConst.LamWF sc s) → LamWF ltv (.scst sc) s
   | ofBvcst      : (bvcwf : BitVecConst.LamWF bvc s) → LamWF ltv (.bvcst bvc) s
   | ofOcst       : (ocwf : OtherConst.LamWF oc s) → LamWF ltv (.ocst oc) s
@@ -1227,6 +1289,8 @@ def LamBaseTerm.LamWF.unique {ltv : LamTyVal} {b : LamBaseTerm} {s₁ s₂ : Lam
     rcases NatConst.LamWF.unique wf₁ wf₂ with ⟨⟨⟩, ⟨⟩⟩; trivial
   case ofIcst.ofIcst ic wf₁ wf₂ =>
     rcases IntConst.LamWF.unique wf₁ wf₂ with ⟨⟨⟩, ⟨⟩⟩; trivial
+  case ofRcst.ofRcst rc wf₁ wf₂ =>
+    rcases RatConst.LamWF.unique wf₁ wf₂ with ⟨⟨⟩, ⟨⟩⟩; trivial
   case ofScst.ofScst sc wf₁ wf₂ =>
     rcases StringConst.LamWF.unique wf₁ wf₂ with ⟨⟨⟩, ⟨⟩⟩; trivial
   case ofBvcst.ofBvcst bvc wf₁ wf₂ =>
@@ -1279,6 +1343,19 @@ abbrev LamBaseTerm.LamWF.ofIle {ltv : LamTyVal} := LamWF.ofIcst (ltv:=ltv) .ofIl
 abbrev LamBaseTerm.LamWF.ofIlt {ltv : LamTyVal} := LamWF.ofIcst (ltv:=ltv) .ofIlt
 abbrev LamBaseTerm.LamWF.ofImax {ltv : LamTyVal} := LamWF.ofIcst (ltv:=ltv) .ofImax
 abbrev LamBaseTerm.LamWF.ofImin {ltv : LamTyVal} := LamWF.ofIcst (ltv:=ltv) .ofImin
+abbrev LamBaseTerm.LamWF.ofRatVal {ltv : LamTyVal} (n : Int) (d : Nat) := LamWF.ofRcst (ltv:=ltv) (.ofRatVal n d)
+abbrev LamBaseTerm.LamWF.ofROfNat {ltv : LamTyVal} := LamWF.ofRcst (ltv:=ltv) .ofROfNat
+abbrev LamBaseTerm.LamWF.ofROfInt {ltv : LamTyVal} := LamWF.ofRcst (ltv:=ltv) .ofROfInt
+abbrev LamBaseTerm.LamWF.ofRneg {ltv : LamTyVal} := LamWF.ofRcst (ltv:=ltv) .ofRneg
+abbrev LamBaseTerm.LamWF.ofRabs {ltv : LamTyVal} := LamWF.ofRcst (ltv:=ltv) .ofRabs
+abbrev LamBaseTerm.LamWF.ofRadd {ltv : LamTyVal} := LamWF.ofRcst (ltv:=ltv) .ofRadd
+abbrev LamBaseTerm.LamWF.ofRsub {ltv : LamTyVal} := LamWF.ofRcst (ltv:=ltv) .ofRsub
+abbrev LamBaseTerm.LamWF.ofRmul {ltv : LamTyVal} := LamWF.ofRcst (ltv:=ltv) .ofRmul
+abbrev LamBaseTerm.LamWF.ofRdiv {ltv : LamTyVal} := LamWF.ofRcst (ltv:=ltv) .ofRdiv
+abbrev LamBaseTerm.LamWF.ofRle {ltv : LamTyVal} := LamWF.ofRcst (ltv:=ltv) .ofRle
+abbrev LamBaseTerm.LamWF.ofRlt {ltv : LamTyVal} := LamWF.ofRcst (ltv:=ltv) .ofRlt
+abbrev LamBaseTerm.LamWF.ofRmax {ltv : LamTyVal} := LamWF.ofRcst (ltv:=ltv) .ofRmax
+abbrev LamBaseTerm.LamWF.ofRmin {ltv : LamTyVal} := LamWF.ofRcst (ltv:=ltv) .ofRmin
 abbrev LamBaseTerm.LamWF.ofStrVal {ltv : LamTyVal} (s : String) := LamWF.ofScst (ltv:=ltv) (.ofStrVal s)
 abbrev LamBaseTerm.LamWF.ofSlength {ltv : LamTyVal} := LamWF.ofScst (ltv:=ltv) .ofSlength
 abbrev LamBaseTerm.LamWF.ofSapp {ltv : LamTyVal} := LamWF.ofScst (ltv:=ltv) .ofSapp
@@ -1334,6 +1411,9 @@ def LamBaseTerm.LamWF.getNcst (wf : LamWF ltv (.ncst nc) s) : NatConst.LamWF nc 
 def LamBaseTerm.LamWF.getIcst (wf : LamWF ltv (.icst ic) s) : IntConst.LamWF ic s :=
   match wf with | .ofIcst icwf => icwf
 
+def LamBaseTerm.LamWF.getRcst (wf : LamWF ltv (.rcst rc) s) : RatConst.LamWF rc s :=
+  match wf with | .ofRcst rcwf => rcwf
+
 def LamBaseTerm.LamWF.getScst (wf : LamWF ltv (.scst sc) s) : StringConst.LamWF sc s :=
   match wf with | .ofScst scwf => scwf
 
@@ -1345,6 +1425,7 @@ def LamBaseTerm.LamWF.ofLamBaseTerm (ltv : LamTyVal) : (b : LamBaseTerm) → (s 
 | .bcst bc    => have ⟨s, wf⟩ := BoolConst.LamWF.ofBoolConst bc; ⟨s, .ofBcst wf⟩
 | .ncst nc    => have ⟨s, wf⟩ := NatConst.LamWF.ofNatConst nc; ⟨s, .ofNcst wf⟩
 | .icst ic    => have ⟨s, wf⟩ := IntConst.LamWF.ofIntConst ic; ⟨s, .ofIcst wf⟩
+| .rcst rc    => have ⟨s, wf⟩ := RatConst.LamWF.ofRatConst rc; ⟨s, .ofRcst wf⟩
 | .scst sc    => have ⟨s, wf⟩ := StringConst.LamWF.ofStringConst sc; ⟨s, .ofScst wf⟩
 | .bvcst bvc  => have ⟨s, wf⟩ := BitVecConst.LamWF.ofBitVecConst bvc; ⟨s, .ofBvcst wf⟩
 | .ocst oc    => have ⟨s, wf⟩ := OtherConst.LamWF.ofOtherConst oc; ⟨s, .ofOcst wf⟩
@@ -1363,6 +1444,7 @@ def LamBaseTerm.lamWF_complete (wf : LamWF ltv b s) : LamWF.ofLamBaseTerm ltv b 
   case ofBcst bc wf => dsimp [LamWF.ofLamBaseTerm]; rw [BoolConst.lamWF_complete wf]
   case ofNcst bc wf => dsimp [LamWF.ofLamBaseTerm]; rw [NatConst.lamWF_complete wf]
   case ofIcst ic wf => dsimp [LamWF.ofLamBaseTerm]; rw [IntConst.lamWF_complete]
+  case ofRcst rc wf => dsimp [LamWF.ofLamBaseTerm]; rw [RatConst.lamWF_complete]
   case ofScst bc wf => dsimp [LamWF.ofLamBaseTerm]; rw [StringConst.lamWF_complete wf]
   case ofBvcst bc wf => dsimp [LamWF.ofLamBaseTerm]; rw [BitVecConst.lamWF_complete wf]
   case ofOcst oc wf => dsimp [LamWF.ofLamBaseTerm]; rw [OtherConst.lamWF_complete wf]
@@ -1373,6 +1455,7 @@ def LamBaseTerm.lamCheck_of_LamWF (H : LamWF ltv b s) : b.lamCheck ltv = s := by
   case ofBcst bc wf => apply BoolConst.lamCheck_of_LamWF wf
   case ofNcst bc wf => apply NatConst.lamCheck_of_LamWF wf
   case ofIcst bc wf => apply IntConst.lamCheck_of_LamWF wf
+  case ofRcst bc wf => apply RatConst.lamCheck_of_LamWF wf
   case ofScst sc wf => apply StringConst.lamCheck_of_LamWF wf
   case ofBvcst sc wf => apply BitVecConst.lamCheck_of_LamWF wf
   case ofOcst oc wf => apply OtherConst.lamCheck_of_LamWF wf
@@ -1383,6 +1466,7 @@ def LamBaseTerm.LamWF.ofCheck (H : b.lamCheck ltv = s) : LamWF ltv b s := by
   case refl.bcst.bcwf => apply BoolConst.LamWF.ofCheck; rfl
   case refl.ncst.ncwf => apply NatConst.LamWF.ofCheck; rfl
   case refl.icst.icwf => apply IntConst.LamWF.ofCheck; rfl
+  case refl.rcst.rcwf => apply RatConst.LamWF.ofCheck; rfl
   case refl.scst.scwf => apply StringConst.LamWF.ofCheck; rfl
   case refl.bvcst.bvcwf => apply BitVecConst.LamWF.ofCheck; rfl
   case refl.ocst.ocwf => apply OtherConst.LamWF.ofCheck; rfl
@@ -1410,6 +1494,7 @@ noncomputable def LamBaseTerm.interp (lval : LamValuation.{u}) : (b : LamBaseTer
 | .bcst bc    => bc.interp lval.tyVal
 | .ncst nc    => nc.interp lval.tyVal
 | .icst ic    => ic.interp lval.tyVal
+| .rcst rc    => rc.interp lval.tyVal
 | .scst sc    => sc.interp lval.tyVal
 | .bvcst bvc  => bvc.interp lval.tyVal
 | .ocst oc    => oc.interp lval.tyVal
@@ -1427,6 +1512,7 @@ noncomputable def LamBaseTerm.LamWF.interp (lval : LamValuation.{u}) : (lwf : La
 | .ofBcst wf    => wf.interp lval.tyVal
 | .ofNcst wf    => wf.interp lval.tyVal
 | .ofIcst wf    => wf.interp lval.tyVal
+| .ofRcst wf    => wf.interp lval.tyVal
 | .ofScst wf    => wf.interp lval.tyVal
 | .ofBvcst wf   => wf.interp lval.tyVal
 | .ofOcst wf    => wf.interp lval.tyVal
@@ -1474,6 +1560,7 @@ theorem LamBaseTerm.LamWF.interp_lvalIrrelevance
           case ofBcst => apply BoolConst.LamWF.interp_lvalIrrelevance <;> rfl
           case ofNcst => apply NatConst.LamWF.interp_lvalIrrelevance <;> rfl
           case ofIcst => apply IntConst.LamWF.interp_lvalIrrelevance <;> rfl
+          case ofRcst => apply RatConst.LamWF.interp_lvalIrrelevance <;> rfl
           case ofScst => apply StringConst.LamWF.interp_lvalIrrelevance <;> rfl
           case ofBvcst => apply BitVecConst.LamWF.interp_lvalIrrelevance <;> rfl
           case ofOcst => apply OtherConst.LamWF.interp_lvalIrrelevance <;> rfl
@@ -1486,6 +1573,7 @@ def LamBaseTerm.interp_equiv (lval : LamValuation.{u})
   case ofBcst => apply BoolConst.interp_equiv
   case ofNcst => apply NatConst.interp_equiv
   case ofIcst => apply IntConst.interp_equiv
+  case ofRcst => apply RatConst.interp_equiv
   case ofScst => apply StringConst.interp_equiv
   case ofBvcst => apply BitVecConst.interp_equiv
   case ofOcst => apply OtherConst.interp_equiv
@@ -1730,6 +1818,10 @@ abbrev LamTerm.imodeq : LamTerm :=
     (.app (.base .int) (.app (.base .int) (.base .iemod) (.bvar 1)) (.bvar 2)))
     (.app (.base .int) (.app (.base .int) (.base .iemod) (.bvar 0)) (.bvar 2)))))
 
+abbrev LamTerm.rge : LamTerm := .flipApp (.base .rle) (.base .rat) (.base .rat) (.base .prop)
+
+abbrev LamTerm.rgt : LamTerm := .flipApp (.base .rlt) (.base .rat) (.base .rat) (.base .prop)
+
 theorem LamTerm.maxEVarSucc_imodeq : LamTerm.maxEVarSucc imodeq = 0 := rfl
 
 abbrev LamTerm.sge : LamTerm := .flipApp (.base .sle) (.base .string) (.base .string) (.base .prop)
@@ -1884,6 +1976,8 @@ theorem LamTerm.maxEVarSucc_mkIte :
 
 def LamTerm.mkNatVal (n : Nat) : LamTerm := .base (.natVal n)
 
+def LamTerm.mkRatVal (n : Int) (d : Nat) : LamTerm := .base (.ratVal n d)
+
 theorem LamTerm.maxEVarSucc_mkNatVal : (mkNatVal n).maxEVarSucc = 0 := rfl
 
 def LamTerm.mkNatBinOp (binOp : NatConst) (a b : LamTerm) : LamTerm :=
@@ -1920,6 +2014,12 @@ def LamTerm.mkIntBinOp (binOp : IntConst) (a b : LamTerm) : LamTerm :=
 theorem LamTerm.maxEVarSucc_mkIntBinOp :
   (mkIntBinOp op a b).maxEVarSucc = max a.maxEVarSucc b.maxEVarSucc := by
   dsimp [mkIntBinOp, maxEVarSucc]; simp [Nat.max]
+
+def LamTerm.mkROfNat (n : LamTerm) : LamTerm :=
+  .app (.base .nat) (.base .rofNat) n
+
+def LamTerm.mkROfInt (n : LamTerm) : LamTerm :=
+  .app (.base .nat) (.base .rofInt) n
 
 /-- Make `BitVec.ofNat n i` -/
 def LamTerm.mkBvofNat (n : Nat) (i : LamTerm) : LamTerm :=
@@ -2703,6 +2803,8 @@ def LamWF.mkIte {ltv : LamTyVal}
   LamWF ltv ⟨lctx, .mkIte s p x y, s⟩ := LamWF.ofApp _ (.ofApp _ (.ofApp _ (.ofBase (.ofIte _)) wfp) wfx) wfy
 
 def LamWF.mkNatVal {ltv : LamTyVal} : LamWF ltv ⟨lctx, .mkNatVal n, .base .nat⟩ := .ofBase (.ofNatVal n)
+
+def LamWF.mkRatVal {ltv : LamTyVal} : LamWF ltv ⟨lctx, .mkRatVal n d, .base .rat⟩ := .ofBase (.ofRatVal n d)
 
 def LamWF.mkNatBinOp {ltv : LamTyVal}
   (wfop : NatConst.LamWF binOp (.func (.base .nat) (.func (.base .nat) s)))

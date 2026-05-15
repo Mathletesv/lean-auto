@@ -24,6 +24,7 @@ def transLamBaseSort : LamBaseSort → String
 | .bool    => "$o"
 | .nat     => "s_nat"
 | .int     => "s_int"
+| .rat     => "s_real"
 | .isto0 p =>
   match p with
   | .xH => "s_string"
@@ -58,6 +59,8 @@ def transNatConst (nc : NatConst) : String := "t_" ++ nc.reprAux.replace " " "_"
 
 def transIntConst (ic : IntConst) : String := "t_" ++ ic.reprAux
 
+def transRatConst (rc : RatConst) : String := "t_" ++ rc.reprAux
+
 def transString (s : String) : String :=
   String.join (s.toList.map (fun c => s!"d{c.toNat}"))
 
@@ -71,6 +74,8 @@ def transNatConstSort (nc : NatConst) := transLamSort nc.lamCheck
 
 def transIntConstSort (ic : IntConst) := transLamSort ic.lamCheck
 
+def transRatConstSort (rc : RatConst) := transLamSort rc.lamCheck
+
 def transStringConstSort (sc : StringConst) := transLamSort sc.lamCheck
 
 def transBitVecConstSort (bvc : BitVecConst) := transLamSort bvc.lamCheck
@@ -80,6 +85,7 @@ def transLamBaseTerm : LamBaseTerm → Except String String
 | .bcst bc    => .ok (transBoolConst bc)
 | .ncst nc    => .ok (transNatConst nc)
 | .icst ic    => .ok (transIntConst ic)
+| .rcst rc    => .ok (transRatConst rc)
 | .scst sc    => .ok (transStringConst sc)
 | .bvcst bvc  => .ok (transBitVecConst bvc)
 -- TODO: translate to λx => x?
