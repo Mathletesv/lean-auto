@@ -1270,7 +1270,7 @@ theorem LamTerm.evarBounded_rwGenAll (H : evarBounded conv bound) :
     case none.refl => apply Nat.le_max_right
     case some.refl => apply H; rw [h]; rfl
   case lam s body IH =>
-    simp [rwGenAll]
+    simp only [rwGenAll] -- REMOVED FOR MATHLIB (ADDED ONLY)
     match h₁ : conv (.lam s body) with
     | .some t' => intro h₂; cases h₂; apply H _ _ h₁
     | .none =>
@@ -1278,7 +1278,7 @@ theorem LamTerm.evarBounded_rwGenAll (H : evarBounded conv bound) :
       | .some t' => intro h; cases h; dsimp [maxEVarSucc]; apply IH _ h₂
       | .none => intro h; cases h
   case app s fn arg IHFn IHArg =>
-    simp [rwGenAll]
+    simp only [rwGenAll] -- REMOVED FOR MATHLIB (ADDED ONLY)
     match h₁ : conv (.app s fn arg) with
     | .some t' => intro h₂; cases h₂; apply H _ _ h₁
     | .none =>
@@ -1505,7 +1505,7 @@ theorem LamTerm.evarBounded_rwGenAllWith (H : ∀ s, evarBounded (conv s) bound)
         | .some t' => intro h; cases h; dsimp [maxEVarSucc]; apply IH _ _ h₂
         | .none => intro h; cases h
   case app s' fn arg IHFn IHArg =>
-    simp [LamTerm.rwGenAllWith]
+    simp only [LamTerm.rwGenAllWith] -- REMOVED FOR MATHLIB (ADDED ONLY)
     match h₁ : conv s (.app s' fn arg) with
     | .some t' => intro h₂; cases h₂; apply H _ _ _ h₁
     | .none =>

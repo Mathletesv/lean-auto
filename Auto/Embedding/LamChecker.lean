@@ -1847,7 +1847,8 @@ theorem InferenceStep.eval_correct
       case condimp =>
         intro hcond; apply Nat.le_trans (Nat.le_trans (m:=max 0 t.maxEVarSucc) _ _) hcond
         apply LamTerm.evarBounded_rwGenAtIfSign LamTerm.evarBounded_andLeft? _ _ h₂
-        rw [Nat.max_zero_left]; apply Nat.le_refl
+        -- rw [Nat.max_zero_left]; apply Nat.le_refl -- REMOVED FOR MATHLIB
+        rw [Nat.max_zero_left]
     | .none => exact True.intro
   | .none => exact True.intro
 | .validOfAndRight pos occ => by
@@ -1867,7 +1868,8 @@ theorem InferenceStep.eval_correct
       case condimp =>
         intro hcond; apply Nat.le_trans (Nat.le_trans (m:=max 0 t.maxEVarSucc) _ _) hcond
         apply LamTerm.evarBounded_rwGenAtIfSign LamTerm.evarBounded_andRight? _ _ h₂
-        rw [Nat.max_zero_left]; apply Nat.le_refl
+        -- rw [Nat.max_zero_left]; apply Nat.le_refl -- REMOVED FOR MATHLIB
+        rw [Nat.max_zero_left]
     | .none => exact True.intro
   | .none => exact True.intro
 

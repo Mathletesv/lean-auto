@@ -1,6 +1,7 @@
 import Auto.Lib.IsomType
 import Auto.Lib.StringExtra
 import Auto.Lib.BoolExtra
+import Mathlib.Data.Real.Basic
 
 namespace Auto.Embedding
 
@@ -108,40 +109,76 @@ def imaxLift.{u} (m n : GLift.{1, u} Int) :=
 def iminLift.{u} (m n : GLift.{1, u} Int) :=
   GLift.up (min m.down n.down)
 
-def rofNatLift.{u} (m : GLift.{1, u} Nat) :=
+def qofNatLift.{u} (m : GLift.{1, u} Nat) :=
   GLift.up (Rat.ofInt (Int.ofNat m.down))
+
+def qofIntLift.{u} (m : GLift.{1, u} Int) :=
+  GLift.up (Rat.ofInt m.down)
+
+def qnegLift.{u} (m : GLift.{1, u} Rat) :=
+  GLift.up (Rat.neg m.down)
+
+def qabsLift.{u} (m : GLift.{1, u} Rat) :=
+  GLift.up (ite (m.down < -m.down) (-m.down) m.down)
+
+def qaddLift.{u} (m n : GLift.{1, u} Rat) :=
+  GLift.up (Rat.add m.down n.down)
+
+def qsubLift.{u} (m n : GLift.{1, u} Rat) :=
+  GLift.up (Rat.sub m.down n.down)
+
+def qmulLift.{u} (m n : GLift.{1, u} Rat) :=
+  GLift.up (Rat.mul m.down n.down)
+
+def qdivLift.{u} (m n : GLift.{1, u} Rat) :=
+  GLift.up (Rat.div m.down n.down)
+
+def qleLift.{u} (m n : GLift.{1, u} Rat) :=
+  GLift.up (LE.le m.down n.down)
+
+def qltLift.{u} (m n : GLift.{1, u} Rat) :=
+  GLift.up (LT.lt m.down n.down)
+
+def qmaxLift.{u} (m n : GLift.{1, u} Rat) :=
+  GLift.up (max m.down n.down)
+
+def qminLift.{u} (m n : GLift.{1, u} Rat) :=
+  GLift.up (min m.down n.down)
+
+def rofNatLift.{u} (m : GLift.{1, u} Nat) :=
+  GLift.up ((m.down : ℝ))
 
 def rofIntLift.{u} (m : GLift.{1, u} Int) :=
   GLift.up (Rat.ofInt m.down)
 
-def rnegLift.{u} (m : GLift.{1, u} Rat) :=
-  GLift.up (Rat.neg m.down)
+def rnegLift.{u} (m : GLift.{1, u} Real) :=
+  GLift.up (-m.down)
 
-def rabsLift.{u} (m : GLift.{1, u} Rat) :=
-  GLift.up (ite (m.down < -m.down) (-m.down) m.down)
+def rabsLift.{u} (m : GLift.{1, u} Real) :=
+  GLift.up (|m.down|)
 
-def raddLift.{u} (m n : GLift.{1, u} Rat) :=
-  GLift.up (Rat.add m.down n.down)
+def raddLift.{u} (m n : GLift.{1, u} Real) :=
+  GLift.up (m.down + n.down)
 
-def rsubLift.{u} (m n : GLift.{1, u} Rat) :=
-  GLift.up (Rat.sub m.down n.down)
+def rsubLift.{u} (m n : GLift.{1, u} Real) :=
+  GLift.up (m.down - n.down)
 
-def rmulLift.{u} (m n : GLift.{1, u} Rat) :=
-  GLift.up (Rat.mul m.down n.down)
+def rmulLift.{u} (m n : GLift.{1, u} Real) :=
+  GLift.up (m.down * n.down)
 
-def rdivLift.{u} (m n : GLift.{1, u} Rat) :=
-  GLift.up (Rat.div m.down n.down)
+noncomputable def rdivLift.{u} (m n : GLift.{1, u} Real) :=
+  GLift.up (m.down / n.down)
 
-def rleLift.{u} (m n : GLift.{1, u} Rat) :=
+def rleLift.{u} (m n : GLift.{1, u} Real) :=
   GLift.up (LE.le m.down n.down)
 
-def rltLift.{u} (m n : GLift.{1, u} Rat) :=
+def rltLift.{u} (m n : GLift.{1, u} Real) :=
   GLift.up (LT.lt m.down n.down)
 
-def rmaxLift.{u} (m n : GLift.{1, u} Rat) :=
+def rmaxLift.{u} (m n : GLift.{1, u} Real) :=
   GLift.up (max m.down n.down)
 
-def rminLift.{u} (m n : GLift.{1, u} Rat) :=
+def rminLift.{u} (m n : GLift.{1, u} Real) :=
   GLift.up (min m.down n.down)
 
 def sappLift.{u} (m n : GLift.{1, u} String) :=

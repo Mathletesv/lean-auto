@@ -1,4 +1,5 @@
 import Auto.Tactic
+import Mathlib
 
 -- Standard Preprocessing Configs
 set_option auto.redMode "reducible"
@@ -22,6 +23,8 @@ set_option trace.auto.tptp.printQuery true
 -- set_option auto.native true
 -- attribute [rebind Auto.Native.solverFunc] Auto.Solver.Native.emulateNative
 
+#eval ((5 : ℤ) : ℝ)
+
 example (x y z : Int) (h1 : x > y + 5) (h2 : y > z) : x ≠ z := by
   auto
 
@@ -29,6 +32,9 @@ example (x y z : Int) (h1 : x - 5 > y) (h2 : y > z) : x ≠ z := by
   auto
 
 example (x y z : Rat) (h1 : x > y) (h2 : y > z) : x ≠ z := by
+  auto
+
+example (x y z : Real) (h1 : x > y) (h2 : y > z) : x ≠ z := by
   auto
 
 example (x y z : Rat) (h1 : x > y + 5) (h2 : y > z) : x ≠ z := by

@@ -24,6 +24,18 @@ namespace LamCstrD
   abbrev Rat.gt (a b : Rat) := Rat.lt b a
   abbrev Rat.max (x y : Rat) : Rat := Max.max x y
   abbrev Rat.min (x y : Rat) : Rat := Min.min x y
+  abbrev Real.neg (r : Real) := -r
+  abbrev Real.abs (r : Real) := |r|
+  abbrev Real.add (a b : Real) := a + b
+  abbrev Real.sub (a b : Real) := a - b
+  abbrev Real.mul (a b : Real) := a * b
+  noncomputable abbrev Real.div (a b : Real) := a / b
+  abbrev Real.le (a b : Real) := LE.le a b
+  abbrev Real.lt (a b : Real) := LT.lt a b
+  abbrev Real.ge (a b : Real) := Real.le b a
+  abbrev Real.gt (a b : Real) := Real.lt b a
+  abbrev Real.max (x y : Real) : Real := Max.max x y
+  abbrev Real.min (x y : Real) : Real := Min.min x y
   abbrev String.ge (a b : String) : Prop := b = a ∨ b < a
   abbrev String.gt (a b : String) : Prop := b < a
   abbrev BitVec.uge (a b : BitVec n) : Bool := BitVec.ule b a
@@ -187,6 +199,7 @@ namespace Lam2D
   | .nat     => .const ``Nat []
   | .int     => .const ``Int []
   | .rat     => .const ``Rat []
+  | .real    => .const ``Real []
   | .isto0 p =>
     match p with
     | .xH => .const ``String []
@@ -246,18 +259,30 @@ namespace Lam2D
   def interpRatConstAsUnlifted : RatConst → CoreM Expr
   | .sciVal n sgn exp => return toExpr (Rat.ofScientific n sgn exp)
   | .ratVal n d => return toExpr (mkRat n d)
-  | .rofNat   => return .const ``Rat.ofNat []
-  | .rofInt   => return .const ``Rat.ofInt []
-  | .rneg     => return .const ``Rat.neg []
-  | .rabs     => return .const ``Rat.abs []
-  | .radd     => return .const ``Rat.add []
-  | .rsub     => return .const ``Rat.sub []
-  | .rmul     => return .const ``Rat.mul []
-  | .rdiv     => return .const ``Rat.div []
-  | .rle      => return .const ``Rat.le []
-  | .rlt      => return .const ``Rat.lt []
-  | .rmax     => return .const ``Rat.max []
-  | .rmin     => return .const ``Rat.min []
+  | .qofNat   => return .const ``Rat.ofNat []
+  | .qofInt   => return .const ``Rat.ofInt []
+  | .qneg     => return .const ``Rat.neg []
+  | .qabs     => return .const ``Rat.abs []
+  | .qadd     => return .const ``Rat.add []
+  | .qsub     => return .const ``Rat.sub []
+  | .qmul     => return .const ``Rat.mul []
+  | .qdiv     => return .const ``Rat.div []
+  | .qle      => return .const ``Rat.le []
+  | .qlt      => return .const ``Rat.lt []
+  | .qmax     => return .const ``Rat.max []
+  | .qmin     => return .const ``Rat.min []
+
+  def interpRealConstAsUnlifted : RealConst → CoreM Expr
+  | .rneg     => return .const ``Real.neg []
+  | .rabs     => return .const ``Real.abs []
+  | .radd     => return .const ``Real.add []
+  | .rsub     => return .const ``Real.sub []
+  | .rmul     => return .const ``Real.mul []
+  | .rdiv     => return .const ``Real.div []
+  | .rle      => return .const ``Real.le []
+  | .rlt      => return .const ``Real.lt []
+  | .rmax     => return .const ``Real.max []
+  | .rmin     => return .const ``Real.min []
 
   def interpStringConstAsUnlifted : StringConst → CoreM Expr
   | .strVal s  => return .lit (.strVal s)
@@ -353,7 +378,8 @@ namespace Lam2D
   | .bcst bc    => Lam2D.interpBoolConstAsUnlifted bc
   | .ncst nc    => Lam2D.interpNatConstAsUnlifted nc
   | .icst ic    => Lam2D.interpIntConstAsUnlifted ic
-  | .rcst rc    => Lam2D.interpRatConstAsUnlifted rc
+  | .qcst qc    => Lam2D.interpRatConstAsUnlifted qc
+  | .rcst rc    => Lam2D.interpRealConstAsUnlifted rc
   | .scst sc    => Lam2D.interpStringConstAsUnlifted sc
   | .bvcst bvc  => Lam2D.interpBitVecConstAsUnlifted bvc
   | .ocst oc    => interpOtherConstAsUnlifted tyVal oc
