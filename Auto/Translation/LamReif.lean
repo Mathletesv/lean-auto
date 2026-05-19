@@ -968,6 +968,7 @@ def newTermExprAux (e : Expr) (sort : LamSort) : ReifM LamTerm := do
   setVarVal (varVal.push (e, sort))
   setVarMap (varMap.insert e idx)
   let _ ← nonemptyOfAtom idx
+  trace[debug] "making new expr: {e}, {varVal}, {idx}, {sort}"
   return .atom idx
 
 def newTypeExpr (e : Expr) : ReifM LamSort := do
@@ -1071,7 +1072,7 @@ def reifMapConstNilLvl : Std.HashMap Name LamTerm :=
     (``Int.le,            .base .ile),
     (``Int.lt,            .base .ilt),
     (`Int.ModEq,          .imodeq),
-    (`Rat.ofNat,          .base .rofNat),
+    (`Rat.ofNat,          .base .rofNat), -- maybe rat.offloat and rat.ofscientific?
     (``Rat.ofInt,         .base .rofInt),
     (``Rat.neg,           .base .rneg),
     (``Rat.abs,           .base .rabs),
@@ -1218,6 +1219,7 @@ def reifMapLam0Arg2NoLit : Std.HashMap (Name × Name) (Expr × LamTerm) :=
     ((``Neg.neg, ``Int),         (.const ``Int.neg [], .base .ineg)),
     ((``Neg.neg, ``Rat),         (.const ``Rat.neg [], .base .rneg)),
     ((`Abs.abs, ``Int),          (.const ``Int.abs [], .base .iabs)),
+    ((`Abs.abs, ``Rat),          (.const ``Rat.abs [], .base .rabs)),
     ((``LE.le, ``Nat),           (.const ``Nat.le [], .base .nle)),
     ((``LE.le, ``Int),           (.const ``Int.le [], .base .ile)),
     ((``LE.le, ``Rat),           (.const ``Rat.le [], .base .rle)),
@@ -1236,8 +1238,11 @@ def reifMapLam0Arg2NoLit : Std.HashMap (Name × Name) (Expr × LamTerm) :=
     ((``GT.gt, ``String),        (.const ``String.gt [], .sgt)),
     ((``Max.max, ``Nat),         (.const ``Nat.max [], .base .nmax)),
     ((``Max.max, ``Int),         (.const ``Int.max [], .base .imax)),
+    ((``Max.max, ``Rat),         (.const ``Rat.max [], .base .rmax)),
     ((``Min.min, ``Nat),         (.const ``Nat.min [], .base .nmin)),
-    ((``Min.min, ``Int),         (.const ``Int.min [], .base .imin))
+    ((``Min.min, ``Int),         (.const ``Int.min [], .base .imin)),
+    ((``Min.min, ``Rat),         (.const ``Rat.min [], .base .rmin)),
+    -- ((``OfScientific.ofScientific, ``Rat), (.const ``Rat.ofScientific [], .base .sciVal))
   ]
 
 open LamCstrD in
@@ -1349,6 +1354,11 @@ def reifMapLam0Arg4NatLit : Std.HashMap (Name × Name) (Array ((Nat → Expr) ×
 def processLam0Arg2 (e fn arg₁ _arg₂ : Expr) : MetaM (Option LamTerm) := do
   let .const fnName _ := fn
     | return .none
+  trace[debug] "found scientific? : {fnName}, {e}, {fn}, {arg₁}, {_arg₂}"
+  if fnName = ``OfScientific.ofScientific then
+    trace[debug] "matched"
+    let all_args := e.getAppArgs
+    trace[debug] "all: {all_args}, {e.isAppOfArity ``OfScientific.ofScientific 5}"
   if arg₁.isConst then
     let .const arg₁Name _ := arg₁
       | throwError "{decl_name%} :: Unexpected error"
@@ -1452,6 +1462,7 @@ def processComplexTermExpr (e : Expr) : MetaM (Option LamTerm) := do
   | 0 =>
     let fn := e.getAppFn
     let args := e.getAppArgs
+    trace[debug] "processComplexTermExpr: {e}, {lams}, {fn}, {args}"
     match args.toList with
     | [] => return .none
     | [_] => return .none
@@ -1468,18 +1479,19 @@ def processNewTermExpr (e : Expr) : ReifM LamTerm := do
   match e with
   | .lit l => return processSimpleLit l
   | .const name lvls => do
-    trace[debug] "process const {name} {lvls}"
+    trace[debug] "process const {name}, {lvls}"
     match ← processSimpleConst name lvls with
     | .some t => return t
     | .none => processOther e
   | .app fn arg => do
-    trace[debug] "process app {fn} {arg}"
+    trace[debug] "process app {fn}, {arg}, {e}"
     match ← processSimpleApp fn arg with
     | .some t => return t
     | .none => processOther e
   | e => processOther e
 where
   processOther (e : Expr) := do
+    trace[debug] "otherProcess {e}"
     if let .some res ← processComplexTermExpr e then
       return res
     newTermExpr e
@@ -1506,13 +1518,28 @@ where
 
 partial def reifTerm (lctx : Std.HashMap FVarId Nat) : Expr → ReifM LamTerm
 | .app fn arg => do
-  trace[debug] "case app {fn}, {arg}"
-  let lamFn ← reifTerm lctx fn
-  let lamArg ← reifTerm lctx arg
-  let argTy ← Meta.inferType arg
-  let lamTy ← reifType argTy
-  trace[debug] "for {fn}, {arg}: lamFn: {lamFn}, lamArg: {lamArg}, argTy: {argTy}, lamTy: {lamTy}"
-  return .app lamTy lamFn lamArg
+  trace[debug] "case app {fn}, {← Lean.Meta.inferType fn}, {arg}"
+  match fn with
+  | _ =>
+    let lamFn ← reifTerm lctx fn
+    let lamArg ← reifTerm lctx arg
+    let argTy ← Meta.inferType arg
+    let lamTy ← reifType argTy
+    if lamTy == LamSort.base LamBaseSort.nat then
+      if let LamTerm.base (LamBaseTerm.ncst (NatConst.natVal exp)) := lamArg then
+        if let .app argType fnHead fnArg := lamFn then
+          if argType == LamSort.base LamBaseSort.bool then
+            if let LamTerm.base (LamBaseTerm.bcst bval) := fnArg then
+              let sgn := bval == BoolConst.trueb
+              if let .app argType2 fnHead2 fnArg2 := fnHead then
+                if argType2 == LamSort.base LamBaseSort.nat then
+                  if let LamTerm.base (LamBaseTerm.ncst (NatConst.natVal base)) := fnArg2 then
+                    if let .atom n := fnHead2 then
+                      let fnExpr ← lookupVarVal! n
+                      if fnExpr.fst.isAppOf ``OfScientific.ofScientific then
+                        trace[debug] "Made scientific: {base} {sgn} {exp}"
+                        return .base (.sciVal base sgn exp)
+    return .app lamTy lamFn lamArg
 | .lam name ty body binfo => do
   trace[debug] "case lam {name}, {ty}, {body}"
   let lamTy ← reifType ty

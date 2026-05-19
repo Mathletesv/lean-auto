@@ -173,10 +173,10 @@ private def int2STerm : Int → STerm
 | .ofNat n   => .sConst (.num n)
 | .negSucc n => .qIdApp (QualIdent.ofString "-") #[.sConst (.num (Nat.succ n))]
 
--- private def rat2STerm (r : Rat) : STerm :=
---   let n := r.num
---   let d := r.den
-
+private def rat2STerm (r : Rat) : STerm :=
+  let n := r.num
+  let d := r.den
+  .qStrApp "/" #[int2STerm n, .sConst (.num d)]
 
 private def lamBvOfNat2String (sni : SMTNamingInfo) (n : Nat) : TransM LamAtomic String := do
   if !(← hIn (.bvOfNat n)) then
@@ -352,6 +352,8 @@ private def lamBaseTerm2STerm_Arity0 : LamBaseTerm → TransM LamAtomic STerm
 | .bcst .trueb        => return .qStrApp "true" #[]
 | .bcst .falseb       => return .qStrApp "false" #[]
 | .ncst (.natVal n)   => return .sConst (.num n)
+| .rcst (.ratVal n d) => return rat2STerm (mkRat n d)
+| .rcst (.sciVal n sgn exp) => return rat2STerm (Rat.ofScientific n sgn exp)
 | .scst (.strVal s)   => return .sConst (.str s)
 | .bvcst (.bvVal n i) => return bitVec2STerm n i
 | t                   => throwError "{decl_name%} :: The arity of {repr t} is not 0"

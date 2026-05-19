@@ -244,6 +244,7 @@ namespace Lam2D
   | .imin     => return .const ``Int.min []
 
   def interpRatConstAsUnlifted : RatConst → CoreM Expr
+  | .sciVal n sgn exp => return toExpr (Rat.ofScientific n sgn exp)
   | .ratVal n d => return toExpr (mkRat n d)
   | .rofNat   => return .const ``Rat.ofNat []
   | .rofInt   => return .const ``Rat.ofInt []

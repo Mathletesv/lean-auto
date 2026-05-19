@@ -37,16 +37,34 @@ example (x y z : Rat) (h1 : x > y + 5) (h2 : y > z) : x ≠ z := by
 example (x : Rat × Rat) : x.1 ≤ x.2 ∨ x.1 > x.2 := by
   auto
 
+#eval (5 / 3 : Rat) / 0
+
+#eval (5.0 : Rat) / 0
+
+#eval (OfScientific.ofScientific 5 False 5) / 0
+
+example : 2.4 = (2.4 : Rat) := by
+  auto
+
 example : 1 + (2.4 : Rat) = 3.4 := by
   auto
 
-example : 1 + (24 / 10 : Rat) = 34 / 10 := by
+example : 1 + (24 / 10 : Rat) = 17 / 5 := by
+  auto
+
+example : 1 + 5 * 3 = 16 := by
+  auto
+
+example : 0 = 10 / 0 := by
+  auto
+
+example : (1 : Rat) + 2.4 * 1 = 34 / 10 := by
   auto
 
 example : 1 + (0.24 * 10 : Rat) = 34 / 10 := by
   auto
 
-example (x y z : Rat) (h1 : x > y + (mkRat 5 3)) (h2 : y > z) : x ≠ z := by
+example (x y z : Rat) (h1 : x > y + (5 / 3)) (h2 : y > z) : x ≠ z := by
   auto
 
 example (f : Int -> Int) (h1 : ∀ x y, x > y -> f x > f y) : ∀ x y, x ≠ y -> f x ≠ f y := by

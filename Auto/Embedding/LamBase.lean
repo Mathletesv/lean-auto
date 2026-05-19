@@ -500,9 +500,11 @@ inductive RatConst
   | rneg | rabs | radd | rsub | rmul | rdiv
   | rle | rlt | rmax | rmin
   | ratVal (n : Int) (d : Nat) | rofNat | rofInt
+  | sciVal (n : Nat) (sgn : Bool) (exp : Nat)
 deriving Inhabited, Hashable, Lean.ToExpr
 
 mkConstFamily RatConst with
+  | sciVal (n : Nat) (sgn : Bool) (exp : Nat) | ofSciVal | (.base .rat)             | s!"{n}*10^{if sgn then -1 else 1}{exp}" | GLift.up (Rat.ofScientific n sgn exp)
   | ratVal (n : Int) (d : Nat) | ofRatVal | (.base .rat)                            | s!"{n}/{d} : Rat" | GLift.up (mkRat n d)
   | rofNat   | ofROfNat   | (.func (.base .nat) (.base .rat))                       | "rofNat"   | rofNatLift
   | rofInt   | ofROfInt   | (.func (.base .int) (.base .rat))                       | "rofInt"   | rofIntLift
@@ -998,6 +1000,7 @@ def LamBaseTerm.ile := LamBaseTerm.icst .ile
 def LamBaseTerm.ilt := LamBaseTerm.icst .ilt
 def LamBaseTerm.imax := LamBaseTerm.icst .imax
 def LamBaseTerm.imin := LamBaseTerm.icst .imin
+def LamBaseTerm.sciVal (n : Nat) (sgn : Bool) (exp : Nat) := LamBaseTerm.rcst (.sciVal n sgn exp)
 def LamBaseTerm.ratVal (n : Int) (d : Nat) := LamBaseTerm.rcst (.ratVal n d)
 def LamBaseTerm.rofNat := LamBaseTerm.rcst .rofNat
 def LamBaseTerm.rofInt := LamBaseTerm.rcst .rofInt
@@ -1343,6 +1346,7 @@ abbrev LamBaseTerm.LamWF.ofIle {ltv : LamTyVal} := LamWF.ofIcst (ltv:=ltv) .ofIl
 abbrev LamBaseTerm.LamWF.ofIlt {ltv : LamTyVal} := LamWF.ofIcst (ltv:=ltv) .ofIlt
 abbrev LamBaseTerm.LamWF.ofImax {ltv : LamTyVal} := LamWF.ofIcst (ltv:=ltv) .ofImax
 abbrev LamBaseTerm.LamWF.ofImin {ltv : LamTyVal} := LamWF.ofIcst (ltv:=ltv) .ofImin
+abbrev LamBaseTerm.LamWF.ofSciVal {ltv : LamTyVal} (n : Nat) (sgn : Bool) (exp : Nat) := LamWF.ofRcst (ltv:=ltv) (.ofSciVal n sgn exp)
 abbrev LamBaseTerm.LamWF.ofRatVal {ltv : LamTyVal} (n : Int) (d : Nat) := LamWF.ofRcst (ltv:=ltv) (.ofRatVal n d)
 abbrev LamBaseTerm.LamWF.ofROfNat {ltv : LamTyVal} := LamWF.ofRcst (ltv:=ltv) .ofROfNat
 abbrev LamBaseTerm.LamWF.ofROfInt {ltv : LamTyVal} := LamWF.ofRcst (ltv:=ltv) .ofROfInt
@@ -1977,6 +1981,8 @@ theorem LamTerm.maxEVarSucc_mkIte :
 def LamTerm.mkNatVal (n : Nat) : LamTerm := .base (.natVal n)
 
 def LamTerm.mkRatVal (n : Int) (d : Nat) : LamTerm := .base (.ratVal n d)
+
+def LamTerm.mkSciVal (n : Nat) (sgn : Bool) (exp : Nat) : LamTerm := .base (.sciVal n sgn exp)
 
 theorem LamTerm.maxEVarSucc_mkNatVal : (mkNatVal n).maxEVarSucc = 0 := rfl
 
@@ -2805,6 +2811,8 @@ def LamWF.mkIte {ltv : LamTyVal}
 def LamWF.mkNatVal {ltv : LamTyVal} : LamWF ltv ⟨lctx, .mkNatVal n, .base .nat⟩ := .ofBase (.ofNatVal n)
 
 def LamWF.mkRatVal {ltv : LamTyVal} : LamWF ltv ⟨lctx, .mkRatVal n d, .base .rat⟩ := .ofBase (.ofRatVal n d)
+
+def LamWF.mkSciVal {ltv : LamTyVal} : LamWF ltv ⟨lctx, .mkSciVal n sgn exp, .base .rat⟩ := .ofBase (.ofSciVal n sgn exp)
 
 def LamWF.mkNatBinOp {ltv : LamTyVal}
   (wfop : NatConst.LamWF binOp (.func (.base .nat) (.func (.base .nat) s)))
