@@ -543,11 +543,15 @@ mkConstFamily RatConst with
 inductive RealConst
   | rneg | rabs | radd | rsub | rmul | rdiv
   | rle | rlt | rmax | rmin
+  | rofNat | rofInt | rofRat
   -- | realVal (r : Real)
 deriving Inhabited, Hashable, Lean.ToExpr
 
 mkConstFamily ncInterp RealConst with
   -- | realVal (r : Real) | ofRealVal | (.base .real)                                   | "real" | GLift.up r
+  | rofNat   | ofROfNat  | (.func (.base .nat) (.base .real))                        | "rofNat"   | rofNatLift
+  | rofInt   | ofROfInt  | (.func (.base .int) (.base .real))                        | "rofInt"   | rofIntLift
+  | rofRat   | ofROfRat  | (.func (.base .rat) (.base .real))                        | "rofRat"   | rofRatLift
   | rneg     | ofRneg    | (.func (.base .real) (.base .real))                       | "-"        | rnegLift
   | rabs     | ofRabs    | (.func (.base .real) (.base .real))                       | "rabs"     | rabsLift
   | radd     | ofRadd    | (.func (.base .real) (.func (.base .real) (.base .real))) | "+"        | raddLift
@@ -1057,6 +1061,9 @@ def LamBaseTerm.qlt := LamBaseTerm.qcst .qlt
 def LamBaseTerm.qmax := LamBaseTerm.qcst .qmax
 def LamBaseTerm.qmin := LamBaseTerm.qcst .qmin
 -- def LamBaseTerm.realVal (r : Real) := LamBaseTerm.rcst (.realVal r)
+def LamBaseTerm.rofNat := LamBaseTerm.rcst .rofNat
+def LamBaseTerm.rofInt := LamBaseTerm.rcst .rofInt
+def LamBaseTerm.rofRat := LamBaseTerm.rcst .rofRat
 def LamBaseTerm.rneg := LamBaseTerm.rcst .rneg
 def LamBaseTerm.rabs := LamBaseTerm.rcst .rabs
 def LamBaseTerm.radd := LamBaseTerm.rcst .radd
@@ -1432,6 +1439,9 @@ abbrev LamBaseTerm.LamWF.ofQlt {ltv : LamTyVal} := LamWF.ofQcst (ltv:=ltv) .ofQl
 abbrev LamBaseTerm.LamWF.ofQmax {ltv : LamTyVal} := LamWF.ofQcst (ltv:=ltv) .ofQmax
 abbrev LamBaseTerm.LamWF.ofQmin {ltv : LamTyVal} := LamWF.ofQcst (ltv:=ltv) .ofQmin
 -- abbrev LamBaseTerm.lamWF.ofRealVal {ltv : LamTyVal} (r : Real) := LamWF.ofRcst (ltv:=ltv) (.ofRealVal r)
+abbrev LamBaseTerm.LamWF.ofROfNat {ltv : LamTyVal} := LamWF.ofRcst (ltv:=ltv) .ofROfNat
+abbrev LamBaseTerm.LamWF.ofROfInt {ltv : LamTyVal} := LamWF.ofRcst (ltv:=ltv) .ofROfInt
+abbrev LamBaseTerm.LamWF.ofROfRat {ltv : LamTyVal} := LamWF.ofRcst (ltv:=ltv) .ofROfRat
 abbrev LamBaseTerm.LamWF.ofRneg {ltv : LamTyVal} := LamWF.ofRcst (ltv:=ltv) .ofRneg
 abbrev LamBaseTerm.LamWF.ofRabs {ltv : LamTyVal} := LamWF.ofRcst (ltv:=ltv) .ofRabs
 abbrev LamBaseTerm.LamWF.ofRadd {ltv : LamTyVal} := LamWF.ofRcst (ltv:=ltv) .ofRadd
@@ -2121,8 +2131,17 @@ theorem LamTerm.maxEVarSucc_mkIntBinOp :
 def LamTerm.mkQOfNat (n : LamTerm) : LamTerm :=
   .app (.base .nat) (.base .qofNat) n
 
-def LamTerm.mkQOfInt (n : LamTerm) : LamTerm :=
-  .app (.base .nat) (.base .qofInt) n
+def LamTerm.mkQOfInt (i : LamTerm) : LamTerm :=
+  .app (.base .nat) (.base .qofInt) i
+
+def LamTerm.mkROfNat (n : LamTerm) : LamTerm :=
+  .app (.base .nat) (.base .rofNat) n
+
+def LamTerm.mkROfInt (i : LamTerm) : LamTerm :=
+  .app (.base .nat) (.base .rofInt) i
+
+def LamTerm.mkROfRat (q : LamTerm) : LamTerm :=
+  .app (.base .nat) (.base .rofRat) q
 
 /-- Make `BitVec.ofNat n i` -/
 def LamTerm.mkBvofNat (n : Nat) (i : LamTerm) : LamTerm :=

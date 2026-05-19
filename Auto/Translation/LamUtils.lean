@@ -24,6 +24,9 @@ namespace LamCstrD
   abbrev Rat.gt (a b : Rat) := Rat.lt b a
   abbrev Rat.max (x y : Rat) : Rat := Max.max x y
   abbrev Rat.min (x y : Rat) : Rat := Min.min x y
+  abbrev Real.ofNat (n : Nat) := (n : ℝ)
+  abbrev Real.ofInt (i : Int) := (i : ℝ)
+  abbrev Real.ofRat (q : Rat) := (q : ℝ)
   abbrev Real.neg (r : Real) := -r
   abbrev Real.abs (r : Real) := |r|
   abbrev Real.add (a b : Real) := a + b
@@ -273,6 +276,9 @@ namespace Lam2D
   | .qmin     => return .const ``Rat.min []
 
   def interpRealConstAsUnlifted : RealConst → CoreM Expr
+  | .rofNat   => return .const ``Real.ofNat []
+  | .rofInt   => return .const ``Real.ofInt []
+  | .rofRat   => return .const ``Real.ofRat []
   | .rneg     => return .const ``Real.neg []
   | .rabs     => return .const ``Real.abs []
   | .radd     => return .const ``Real.add []

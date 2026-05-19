@@ -297,6 +297,9 @@ private def lamBaseTerm2STerm_Arity1 (sni : SMTNamingInfo) (arg : STerm) : LamBa
 | .qcst .qofInt          => return .qStrApp "/" #[arg, int2STerm 1]
 | .qcst .qneg            => return .qStrApp "-" #[int2STerm 0, arg]
 | .qcst .qabs            => return .qStrApp "abs" #[arg]
+| .rcst .rofNat          => return .qStrApp "/" #[arg, int2STerm 1]
+| .rcst .rofInt          => return .qStrApp "/" #[arg, int2STerm 1]
+| .rcst .rofRat          => return arg
 | .rcst .rneg            => return .qStrApp "-" #[int2STerm 0, arg]
 | .rcst .rabs            => return .qStrApp "abs" #[arg]
 | .scst .slength         => return .qStrApp "str.len" #[arg]

@@ -149,7 +149,10 @@ def rofNatLift.{u} (m : GLift.{1, u} Nat) :=
   GLift.up ((m.down : ℝ))
 
 def rofIntLift.{u} (m : GLift.{1, u} Int) :=
-  GLift.up (Rat.ofInt m.down)
+  GLift.up ((m.down : ℝ))
+
+def rofRatLift.{u} (m : GLift.{1, u} Rat) :=
+  GLift.up ((m.down : ℝ))
 
 def rnegLift.{u} (m : GLift.{1, u} Real) :=
   GLift.up (-m.down)

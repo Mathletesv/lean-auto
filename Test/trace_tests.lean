@@ -67,7 +67,7 @@ example : 0 = 10 / 0 := by
 example : (1 : Rat) + 2.4 * 1 = 34 / 10 := by
   auto
 
-example : 1 + (0.24 * 10 : Rat) = 34 / 10 := by
+example : 1 + (0.24 * 10 : Rat) = (34 / 10 : Real) := by
   auto
 
 example (x y z : Rat) (h1 : x > y + (5 / 3)) (h2 : y > z) : x ≠ z := by
@@ -119,8 +119,24 @@ example (f g : Rat → Rat) (h1 : ∀ x : Rat, f (g x) = x) : (∀ x y : Rat, x 
 example : ∀ y z w : Rat, ∃ x : Rat, x * y > z ∧ x * w < z → y > w  := by
   auto
 
+example : ∀ y z w : Real, ∃ x : Real, x * y > z ∧ x * w < z → y > w  := by
+  auto
+
 example (a b c d : Rat) (h1 : a ≤ b) (h2 : c < d) : a + c < b + d := by
   auto
 
-example (x y : Rat) (h : 2 * x + 1 < 2 * y) : x < y := by
+example (a b c d : Real) (h1 : a ≤ b) (h2 : c < d) : a + c < b + d := by
+  auto
+
+example (x y : Rat) (h : 2 * x + 1 < 2 * y - (2 : Int)) : x < y := by
+  auto
+
+-- [debug] not atomized: 1
+-- [debug] process app @OfNat.ofNat ℚ 1, Rat.instOfNat, 1
+-- [debug] process app more: [ℚ, 1, Rat.instOfNat] @OfNat.ofNat OfNat.ofNat [0]
+-- [debug] otherProcess 1
+-- [debug] processComplexTermExpr: 1, 0, @OfNat.ofNat, [ℚ, 1, Rat.instOfNat]
+-- [debug] happened : 1 @OfNat.ofNat ℚ 1 Rat.instOfNat
+
+example (x y : Real) (h : 2 * x + 1 < 2 * y - 2) : x < y := by
   auto

@@ -1086,6 +1086,9 @@ def reifMapConstNilLvl : Std.HashMap Name LamTerm :=
     (``Rat.div,           .base .qdiv),
     (`Rat.le,             .base .qle),
     (`Rat.lt,             .base .qlt),
+    (`Real.ofNat,         .base .rofNat),
+    (`Real.ofInt,         .base .rofInt),
+    (`Real.ofRat,         .base .rofRat),
     (`Real.neg,           .base .rneg),
     (`Real.abs,           .base .rabs),
     (`Real.add,           .base .radd),
@@ -1228,6 +1231,9 @@ def reifMapLam0Arg2NoLit : Std.HashMap (Name × Name) (Expr × LamTerm) :=
     ((``NatCast.natCast, ``Int), (.const ``Int.ofNat [], .base .iofNat)),
     ((``NatCast.natCast, ``Rat), (.const ``Rat.ofNat [], .base .qofNat)),
     ((``IntCast.intCast, ``Rat), (.const ``Rat.ofInt [], .base .qofInt)),
+    ((``NatCast.natCast, ``Real), (.const ``Real.ofNat [], .base .rofNat)),
+    ((``IntCast.intCast, ``Real), (.const ``Real.ofInt [], .base .rofInt)),
+    ((``RatCast.ratCast, ``Real), (.const ``Real.ofRat [], .base .rofRat)),
     ((``Neg.neg, ``Int),         (.const ``Int.neg [], .base .ineg)),
     ((``Neg.neg, ``Rat),         (.const ``Rat.neg [], .base .qneg)),
     ((``Neg.neg, ``Real),        (.const ``Real.neg [], .base .rneg)),
@@ -1291,6 +1297,7 @@ def reifMapLam0Arg2Natlit : Std.HashMap (Name × Name) (Array ((Nat → Expr) ×
                 (fun n => .app (.const ``BitVec.propsgt []) (.lit (.natVal n)), fun n => .bvpropsgt n)])
   ]
 
+open LamCstrD in
 /--
   fn   : .const _ _
   arg₁ : .const _ _
@@ -1301,19 +1308,19 @@ def reifMapLam0Arg4NoLit : Std.HashMap (Name × Name × Name) (Expr × LamTerm) 
     ((``HAdd.hAdd, ``Nat, ``Nat),             (.const ``Nat.add [], .base .nadd)),
     ((``HAdd.hAdd, ``Int, ``Int),             (.const ``Int.add [], .base .iadd)),
     ((``HAdd.hAdd, ``Rat, ``Rat),             (.const ``Rat.add [], .base .qadd)),
-    ((``HAdd.hAdd, ``Real, ``Real),           (.const `Real.add [], .base .radd)),
+    ((``HAdd.hAdd, ``Real, ``Real),           (.const ``Real.add [], .base .radd)),
     ((``HSub.hSub, ``Nat, ``Nat),             (.const ``Nat.sub [], .base .nsub)),
     ((``HSub.hSub, ``Int, ``Int),             (.const ``Int.sub [], .base .isub)),
     ((``HSub.hSub, ``Rat, ``Rat),             (.const ``Rat.sub [], .base .qsub)),
-    ((``HSub.hSub, ``Real, ``Real),           (.const `Real.sub [], .base .rsub)),
+    ((``HSub.hSub, ``Real, ``Real),           (.const ``Real.sub [], .base .rsub)),
     ((``HMul.hMul, ``Nat, ``Nat),             (.const ``Nat.mul [], .base .nmul)),
     ((``HMul.hMul, ``Int, ``Int),             (.const ``Int.mul [], .base .imul)),
     ((``HMul.hMul, ``Rat, ``Rat),             (.const ``Rat.mul [], .base .qmul)),
-    ((``HMul.hMul, ``Real, ``Real),           (.const `Real.mul [], .base .rmul)),
+    ((``HMul.hMul, ``Real, ``Real),           (.const ``Real.mul [], .base .rmul)),
     ((``HDiv.hDiv, ``Nat, ``Nat),             (.const ``Nat.div [], .base .ndiv)),
     ((``HDiv.hDiv, ``Int, ``Int),             (.const ``Int.tdiv [], .base .idiv)),
     ((``HDiv.hDiv, ``Rat, ``Rat),             (.const ``Rat.div [], .base .qdiv)),
-    ((``HDiv.hDiv, ``Real, ``Real),           (.const `Real.div [], .base .rdiv)),
+    ((``HDiv.hDiv, ``Real, ``Real),           (.const ``Real.div [], .base .rdiv)),
     ((``HAppend.hAppend, ``String, ``String), (.const ``String.append [], .base .sapp))
   ]
 
@@ -1416,6 +1423,15 @@ def processLam0Arg3 (e fn arg₁ arg₂ _arg₃ : Expr) : MetaM (Option LamTerm)
         let .lit (.natVal nv) := arg₂
           | throwError "{decl_name%} :: OfNat.ofNat instance is not based on a nat literal"
         return .some (.mkQOfNat (.base (.natVal nv)))
+      return .none
+    | .const ``Real _ =>
+      -- if (← Meta.isDefEqD e (.app (.const `Auto.LamCstrD.Real.ofNat []) arg₂)) then
+      --   trace[debug] "successful conversion?"
+      --   let .lit (.natVal nv) := arg₂
+      --     | throwError "{decl_name%} :: OfNat.ofNat instance is not based on a nat literal"
+      -- I think this should work?
+      if let .lit (.natVal nv) := arg₂ then
+        return .some (.mkROfNat (.base (.natVal nv)))
       return .none
     | .app (.const ``BitVec []) nExpr =>
       if let .some n ← Meta.evalNat nExpr then
