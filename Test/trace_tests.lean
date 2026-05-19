@@ -55,6 +55,18 @@ example : 2.4 = (2.4 : Rat) := by
 example : 1 + (2.4 : Rat) = 3.4 := by
   auto
 
+example : 1 + (2.4 : Real) = 3.4 := by
+  auto
+
+example : 1 + (2 : Rat) = 3 := by
+  auto
+
+example : 1 + (-1 : Real) = 0 := by
+  auto
+
+example : (1 + (2.4 : Rat) : Real) = ((3.4 : Rat) : Real) := by
+  auto
+
 example : 1 + (24 / 10 : Rat) = 17 / 5 := by
   auto
 

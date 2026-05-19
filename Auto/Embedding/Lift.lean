@@ -146,13 +146,13 @@ def qminLift.{u} (m n : GLift.{1, u} Rat) :=
   GLift.up (min m.down n.down)
 
 def rofNatLift.{u} (m : GLift.{1, u} Nat) :=
-  GLift.up ((m.down : ℝ))
+  GLift.up (m.down : ℝ)
 
 def rofIntLift.{u} (m : GLift.{1, u} Int) :=
-  GLift.up ((m.down : ℝ))
+  GLift.up (m.down : ℝ)
 
 def rofRatLift.{u} (m : GLift.{1, u} Rat) :=
-  GLift.up ((m.down : ℝ))
+  GLift.up (m.down : ℝ)
 
 def rnegLift.{u} (m : GLift.{1, u} Real) :=
   GLift.up (-m.down)

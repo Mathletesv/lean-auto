@@ -525,7 +525,7 @@ inductive RatConst
 deriving Inhabited, Hashable, Lean.ToExpr
 
 mkConstFamily RatConst with
-  | sciVal (n : Nat) (sgn : Bool) (exp : Nat) | ofSciVal | (.base .rat)             | s!"{n}*10^{if sgn then -1 else 1}{exp}" | GLift.up (Rat.ofScientific n sgn exp)
+  | sciVal (n : Nat) (sgn : Bool) (exp : Nat) | ofSciVal | (.base .rat)             | s!"{n}*10^{if sgn then "-" else ""}{exp} : Rat" | GLift.up (Rat.ofScientific n sgn exp)
   | ratVal (n : Int) (d : Nat) | ofRatVal | (.base .rat)                            | s!"{n}/{d} : Rat" | GLift.up (mkRat n d)
   | qofNat   | ofQOfNat   | (.func (.base .nat) (.base .rat))                       | "qofNat"   | qofNatLift
   | qofInt   | ofQOfInt   | (.func (.base .int) (.base .rat))                       | "qofInt"   | qofIntLift
@@ -544,11 +544,9 @@ inductive RealConst
   | rneg | rabs | radd | rsub | rmul | rdiv
   | rle | rlt | rmax | rmin
   | rofNat | rofInt | rofRat
-  -- | realVal (r : Real)
 deriving Inhabited, Hashable, Lean.ToExpr
 
 mkConstFamily ncInterp RealConst with
-  -- | realVal (r : Real) | ofRealVal | (.base .real)                                   | "real" | GLift.up r
   | rofNat   | ofROfNat  | (.func (.base .nat) (.base .real))                        | "rofNat"   | rofNatLift
   | rofInt   | ofROfInt  | (.func (.base .int) (.base .real))                        | "rofInt"   | rofIntLift
   | rofRat   | ofROfRat  | (.func (.base .rat) (.base .real))                        | "rofRat"   | rofRatLift
@@ -562,7 +560,6 @@ mkConstFamily ncInterp RealConst with
   | rlt      | ofRlt     | (.func (.base .real) (.func (.base .real) (.base .prop))) | "<"        | rltLift
   | rmax     | ofRmax    | (.func (.base .real) (.func (.base .real) (.base .real))) | "rmax"     | rmaxLift
   | rmin     | ofRmin    | (.func (.base .real) (.func (.base .real) (.base .real))) | "rmin"     | rminLift
-
 
 inductive StringConst
   | strVal (s : String)
@@ -988,7 +985,7 @@ inductive LamBaseTerm
   | ncst     : NatConst    → LamBaseTerm
   | icst     : IntConst    → LamBaseTerm
   | qcst     : RatConst    → LamBaseTerm
-  | rcst     : RealConst    → LamBaseTerm
+  | rcst     : RealConst   → LamBaseTerm
   | scst     : StringConst → LamBaseTerm
   | bvcst    : BitVecConst → LamBaseTerm
   | ocst     : OtherConst  → LamBaseTerm
@@ -2132,16 +2129,16 @@ def LamTerm.mkQOfNat (n : LamTerm) : LamTerm :=
   .app (.base .nat) (.base .qofNat) n
 
 def LamTerm.mkQOfInt (i : LamTerm) : LamTerm :=
-  .app (.base .nat) (.base .qofInt) i
+  .app (.base .int) (.base .qofInt) i
 
 def LamTerm.mkROfNat (n : LamTerm) : LamTerm :=
   .app (.base .nat) (.base .rofNat) n
 
 def LamTerm.mkROfInt (i : LamTerm) : LamTerm :=
-  .app (.base .nat) (.base .rofInt) i
+  .app (.base .int) (.base .rofInt) i
 
 def LamTerm.mkROfRat (q : LamTerm) : LamTerm :=
-  .app (.base .nat) (.base .rofRat) q
+  .app (.base .rat) (.base .rofRat) q
 
 /-- Make `BitVec.ofNat n i` -/
 def LamTerm.mkBvofNat (n : Nat) (i : LamTerm) : LamTerm :=
