@@ -29,7 +29,7 @@ def LexVal.toString : LexVal → String
 | .rat n m =>
   let pow := s!"{m}".length - 1
   if m != Nat.pow 10 pow then
-    panic!"LexVal :: .rat {n} {m} is not yet supported, because {m} is not a power of 10"
+    panic! s!"{decl_name%} :: .rat {n} {m} is not yet supported, because {m} is not a power of 10"
   else
     let nint := n / m
     let nfrac := n % m
@@ -64,7 +64,7 @@ def LexVal.ofString (s : String) (attr : String) : LexVal :=
       let b := b.toNat!
       .rat (a * fracPow + b) fracPow
     else
-      panic! s!"LexVal.ofString :: {repr s} is not a valid decimal number"
+      panic! s!"{decl_name%} :: {repr s} is not a valid decimal number"
   | "hexadecimal" =>
     let hdigs := s.drop 2
     .nat (hdigs.foldl (fun x c => x * 16 + hexDigitToNat c) 0)
@@ -80,7 +80,7 @@ def LexVal.ofString (s : String) (attr : String) : LexVal :=
   | "comment"      =>
     let rn : Nat := if String.Pos.Raw.get s (String.Pos.Raw.prev s (String.Pos.Raw.prev s s.rawEndPos)) == '\r' then 1 else 0
     .comment ((s.drop 1).take (s.length - 2 - rn)).toString
-  | _              => panic! s!"LexVal.ofString :: {repr attr} is not a valid attribute"
+  | _              => panic! s!"{decl_name%} :: {repr attr} is not a valid attribute"
 
 inductive Sexp where
   | atom : LexVal → Sexp
@@ -136,13 +136,13 @@ local instance : Hashable Char := ⟨fun c => hash c.val⟩
   This is because wee rely on the property that:
      For each lexicon `l` with a white space at position `p`, the
      part of `l` before `p` will always be identified as `incomplete`
-     by `ERE.ADFALexEagerL SMTSexp.lexiconADFA`, and never as `done`.
+     by `ERE.ADFALexEagerL SMT.lexiconADFA`, and never as `done`.
 -/
 def parseSexp (s : String) (p : String.Pos.Raw) (partialResult : PartialResult) : ParseResult := Id.run <| do
   if p == s.rawEndPos then
     return .incomplete partialResult p
   let nextLexicon (p : String.Pos.Raw) (lst : Nat) :=
-    Regex.ERE.ADFALexEagerL SMTSexp.lexiconADFA ⟨s, p, s.rawEndPos⟩
+    Regex.ERE.ADFALexEagerL SMT.lexiconADFA ⟨s, p, s.rawEndPos⟩
       {strict := true, initS := lst, prependBeginS := false, appendEndS := false}
   let mut lst := partialResult.lst
   let mut lexpart := partialResult.lexpart
@@ -156,7 +156,7 @@ def parseSexp (s : String) (p : String.Pos.Raw) (partialResult : PartialResult) 
       -- Skip whitespace characters
       while p != endPos do
         let c := String.Pos.Raw.get! s p
-        if SMTSexp.whitespace.contains c then
+        if SMT.whitespace.contains c then
           p := p + c
         else
           break
@@ -165,9 +165,9 @@ def parseSexp (s : String) (p : String.Pos.Raw) (partialResult : PartialResult) 
       return .incomplete ⟨0, "", pstk⟩ p
     match nextLexicon p lst with
     | ⟨.complete, matched, _, state⟩ =>
-      -- A unique attribute should be returned, according to `SMTSexp.lexiconADFA`
-      let [attr] := (SMTSexp.lexiconADFA.getAttrs state).toList
-        | return panic! s!"parseSexp :: Unexpected error"
+      -- A unique attribute should be returned, according to `SMT.lexiconADFA`
+      let [attr] := (SMT.lexiconADFA.getAttrs state).toList
+        | return panic! s!"{decl_name%} :: Unexpected error"
       p := matched.stopPos
       let lexval := LexVal.ofString (lexpart ++ matched.toString) attr
       -- Restore lexer state
@@ -191,7 +191,7 @@ def parseSexp (s : String) (p : String.Pos.Raw) (partialResult : PartialResult) 
         -- Ordinary lexicons must be separated by whitespace or parentheses
         match String.Pos.Raw.get? s p with
         | some c =>
-          if !SMTSexp.whitespace.contains c ∧ c != ')' ∧ c != '(' then
+          if !SMT.whitespace.contains c ∧ c != ')' ∧ c != '(' then
             return .malformed
         | none => pure ()
         if pstk.size == 0 then
@@ -200,7 +200,7 @@ def parseSexp (s : String) (p : String.Pos.Raw) (partialResult : PartialResult) 
         pstk := pstk.modify (pstk.size - 1) (fun arr => arr.push (.atom l))
     | ⟨.incomplete, m, _, lst'⟩ => return .incomplete ⟨lst', lexpart ++ m.toString, pstk⟩ m.stopPos
     | ⟨.malformed, _, _, _⟩  => return .malformed
-  return panic! s!"parseSexp :: Unexpected error when parsing string {s}"
+  return panic! s!"{decl_name%} :: Unexpected error when parsing string {s}"
 
 /-
 
@@ -221,7 +221,7 @@ def longSexp : Nat → Sexp
 #eval testit (toString (longSexp 20)) ⟨0⟩ (print:=false)
 #eval testit "djn (abcde |fg| h (12 3) 0x50 34.4 (0b0 x2_& |🍉| \"dl\"\"\")) Not here" ⟨3⟩
 #eval testit "(abcde 0x" ⟨0⟩
-#eval IO.println <| Regex.ERE.ADFALexEagerL SMTSexp.lexiconADFA "abc".toSubstring {}
+#eval IO.println <| Regex.ERE.ADFALexEagerL SMT.lexiconADFA "abc".toSubstring {}
 
 def testResume : IO Unit := do
   let strs := ["(abcde\n", "|ab", "\nu\n", "|", "ua", "ab)"]
