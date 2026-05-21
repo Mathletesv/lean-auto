@@ -260,7 +260,6 @@ namespace Lam2D
   | .imin     => return .const ``Int.min []
 
   def interpRatConstAsUnlifted : RatConst → CoreM Expr
-  | .sciVal n sgn exp => return toExpr (Rat.ofScientific n sgn exp)
   | .ratVal n d => return toExpr (mkRat n d)
   | .qofNat   => return .const ``Rat.ofNat []
   | .qofInt   => return .const ``Rat.ofInt []
@@ -276,6 +275,8 @@ namespace Lam2D
   | .qmin     => return .const ``Rat.min []
 
   def interpRealConstAsUnlifted : RealConst → CoreM Expr
+  | .sciVal n sgn exp => return ← (Lean.Meta.mkAppOptM ``OfScientific.ofScientific
+    #[some (.const ``Real []), none, some (toExpr n), some (toExpr sgn), some (toExpr exp)]).run'
   | .rofNat   => return .const ``Real.ofNat []
   | .rofInt   => return .const ``Real.ofInt []
   | .rofRat   => return .const ``Real.ofRat []

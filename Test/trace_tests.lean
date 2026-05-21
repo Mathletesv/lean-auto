@@ -78,13 +78,16 @@ example : 10 % (0 : Real) = 10 := by
 
 #eval (OfScientific.ofScientific 5 False 5) / 0
 
-example : 2.4 = (2.4 : Real) := by
+example : 0.123124 = (0.123124 : Real) := by
   auto
 
-example : 1 + (2.4 : Real) = 3.4 := by
+example : 01 + (2.40 : Real) = 3.40 := by
   auto
 
-example : 1 + (2.4 : Real) = 3.4 := by
+example : 10 + (24 : Real) = 34 := by
+  auto
+
+example : (5.00000000000001 + 10) = (15.00000000000001 : Real) := by
   auto
 
 example : 1 + (2 : Real) = 3 := by

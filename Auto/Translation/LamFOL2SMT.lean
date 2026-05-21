@@ -297,8 +297,8 @@ private def lamBaseTerm2STerm_Arity1 (sni : SMTNamingInfo) (arg : STerm) : LamBa
 | .qcst .qofInt          => return .qStrApp "/" #[arg, int2STerm 1]
 | .qcst .qneg            => return .qStrApp "-" #[int2STerm 0, arg]
 | .qcst .qabs            => return .qStrApp "abs" #[arg]
-| .rcst .rofNat          => return .qStrApp "/" #[arg, int2STerm 1]
-| .rcst .rofInt          => return .qStrApp "/" #[arg, int2STerm 1]
+| .rcst .rofNat          => return if let .sConst (.num n) := arg then .sConst (.scientific n false 0) else .qStrApp "/" #[arg, int2STerm 1]
+| .rcst .rofInt          => return if let .sConst (.num n) := arg then .sConst (.scientific n false 0) else .qStrApp "/" #[arg, int2STerm 1]
 | .rcst .rofRat          => return arg
 | .rcst .rneg            => return .qStrApp "-" #[int2STerm 0, arg]
 | .rcst .rabs            => return .qStrApp "abs" #[arg]
@@ -367,7 +367,7 @@ private def lamBaseTerm2STerm_Arity0 : LamBaseTerm → TransM LamAtomic STerm
 | .bcst .falseb       => return .qStrApp "false" #[]
 | .ncst (.natVal n)   => return .sConst (.num n)
 | .qcst (.ratVal n d) => return rat2STerm (mkRat n d)
-| .qcst (.sciVal n sgn exp) => return rat2STerm (Rat.ofScientific n sgn exp)
+| .rcst (.sciVal n sgn exp) => return .sConst (.scientific n sgn exp) -- make a smt .float
 | .scst (.strVal s)   => return .sConst (.str s)
 | .bvcst (.bvVal n i) => return bitVec2STerm n i
 | t                   => throwError "{decl_name%} :: The arity of {repr t} is not 0"
@@ -558,7 +558,7 @@ def termAuxDecls : Array IR.SMT.Command :=
     .defFun false "iemod" #[("x", .app (.symb "Int") #[]), ("y", .app (.symb "Int") #[])] (.app (.symb "Int") #[])
       (.qStrApp "ite" #[.qStrApp "=" #[.qStrApp "y" #[], .sConst (.num 0)], .qStrApp "x" #[], .qStrApp "mod" #[.qStrApp "x" #[], .qStrApp "y" #[]]]),
     .defFun false "rdiv" #[("x", .app (.symb "Real") #[]), ("y", .app (.symb "Real") #[])] (.app (.symb "Real") #[])
-      (.qStrApp "ite" #[.qStrApp "=" #[.qStrApp "y" #[], rat2STerm 0], rat2STerm 0, .qStrApp "/" #[.qStrApp "x" #[], .qStrApp "y" #[]]])
+      (.qStrApp "ite" #[.qStrApp "=" #[.qStrApp "y" #[], .sConst (.scientific 0 false 0)], .sConst (.scientific 0 false 0), .qStrApp "/" #[.qStrApp "x" #[], .qStrApp "y" #[]]])
    ]
 
 /--

@@ -1574,12 +1574,8 @@ partial def reifTerm (lctx : Std.HashMap FVarId Nat) : Expr → ReifM LamTerm
                     if let .atom n := fnHead2 then
                       let fnExpr ← lookupVarVal! n
                       if fnExpr.fst.isAppOf ``OfScientific.ofScientific then
-                        trace[debug] "found some scientific {base} {sgn} {exp}"
                         match (← Lean.Meta.inferType fn) with
-                        | .forallE _ _ (.const ``Real _) _ =>
-                          trace[debug] "found a scientific real"
-                          return .mkROfRat (.base (.sciVal base sgn exp))
-                        | .forallE _ _ (.const ``Rat  _) _ => return .base (.sciVal base sgn exp)
+                        | .forallE _ _ (.const ``Real _) _ => return .base (.sciVal base sgn exp)
                         | _ => return .base (.sciVal base sgn exp)
     return .app lamTy lamFn lamArg
 | .lam name ty body binfo => do

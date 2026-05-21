@@ -521,11 +521,11 @@ inductive RatConst
   | qneg | qabs | qadd | qsub | qmul | qdiv
   | qle | qlt | qmax | qmin
   | ratVal (n : Int) (d : Nat) | qofNat | qofInt
-  | sciVal (n : Nat) (sgn : Bool) (exp : Nat)
+  -- | sciVal (n : Nat) (sgn : Bool) (exp : Nat)
 deriving Inhabited, Hashable, Lean.ToExpr
 
 mkConstFamily RatConst with
-  | sciVal (n : Nat) (sgn : Bool) (exp : Nat) | ofSciVal | (.base .rat)             | s!"{n}*10^{if sgn then "-" else ""}{exp} : Rat" | GLift.up (Rat.ofScientific n sgn exp)
+  -- | sciVal (n : Nat) (sgn : Bool) (exp : Nat) | ofSciVal | (.base .rat)             | s!"{n}*10^{if sgn then "-" else ""}{exp} : Rat" | GLift.up (Rat.ofScientific n sgn exp)
   | ratVal (n : Int) (d : Nat) | ofRatVal | (.base .rat)                            | s!"{n}/{d} : Rat" | GLift.up (mkRat n d)
   | qofNat   | ofQOfNat   | (.func (.base .nat) (.base .rat))                       | "qofNat"   | qofNatLift
   | qofInt   | ofQOfInt   | (.func (.base .int) (.base .rat))                       | "qofInt"   | qofIntLift
@@ -544,9 +544,11 @@ inductive RealConst
   | rneg | rabs | radd | rsub | rmul | rdiv
   | rle | rlt | rmax | rmin
   | rofNat | rofInt | rofRat
+  | sciVal (n : Nat) (sgn : Bool) (exp : Nat)
 deriving Inhabited, Hashable, Lean.ToExpr
 
 mkConstFamily ncInterp RealConst with
+  | sciVal (n : Nat) (sgn : Bool) (exp : Nat) | ofSciVal | (.base .real)             | s!"{n}*10^{if sgn then "-" else ""}{exp} : Rat" | GLift.up ((Rat.ofScientific n sgn exp) : Real)
   | rofNat   | ofROfNat  | (.func (.base .nat) (.base .real))                        | "rofNat"   | rofNatLift
   | rofInt   | ofROfInt  | (.func (.base .int) (.base .real))                        | "rofInt"   | rofIntLift
   | rofRat   | ofROfRat  | (.func (.base .rat) (.base .real))                        | "rofRat"   | rofRatLift
@@ -1043,7 +1045,7 @@ def LamBaseTerm.ile := LamBaseTerm.icst .ile
 def LamBaseTerm.ilt := LamBaseTerm.icst .ilt
 def LamBaseTerm.imax := LamBaseTerm.icst .imax
 def LamBaseTerm.imin := LamBaseTerm.icst .imin
-def LamBaseTerm.sciVal (n : Nat) (sgn : Bool) (exp : Nat) := LamBaseTerm.qcst (.sciVal n sgn exp)
+def LamBaseTerm.sciVal (n : Nat) (sgn : Bool) (exp : Nat) := LamBaseTerm.rcst (.sciVal n sgn exp)
 def LamBaseTerm.ratVal (n : Int) (d : Nat) := LamBaseTerm.qcst (.ratVal n d)
 def LamBaseTerm.qofNat := LamBaseTerm.qcst .qofNat
 def LamBaseTerm.qofInt := LamBaseTerm.qcst .qofInt
@@ -1421,7 +1423,7 @@ abbrev LamBaseTerm.LamWF.ofIle {ltv : LamTyVal} := LamWF.ofIcst (ltv:=ltv) .ofIl
 abbrev LamBaseTerm.LamWF.ofIlt {ltv : LamTyVal} := LamWF.ofIcst (ltv:=ltv) .ofIlt
 abbrev LamBaseTerm.LamWF.ofImax {ltv : LamTyVal} := LamWF.ofIcst (ltv:=ltv) .ofImax
 abbrev LamBaseTerm.LamWF.ofImin {ltv : LamTyVal} := LamWF.ofIcst (ltv:=ltv) .ofImin
-abbrev LamBaseTerm.LamWF.ofSciVal {ltv : LamTyVal} (n : Nat) (sgn : Bool) (exp : Nat) := LamWF.ofQcst (ltv:=ltv) (.ofSciVal n sgn exp)
+abbrev LamBaseTerm.LamWF.ofSciVal {ltv : LamTyVal} (n : Nat) (sgn : Bool) (exp : Nat) := LamWF.ofRcst (ltv:=ltv) (.ofSciVal n sgn exp)
 abbrev LamBaseTerm.LamWF.ofRatVal {ltv : LamTyVal} (n : Int) (d : Nat) := LamWF.ofQcst (ltv:=ltv) (.ofRatVal n d)
 abbrev LamBaseTerm.LamWF.ofQOfNat {ltv : LamTyVal} := LamWF.ofQcst (ltv:=ltv) .ofQOfNat
 abbrev LamBaseTerm.LamWF.ofQOfInt {ltv : LamTyVal} := LamWF.ofQcst (ltv:=ltv) .ofQOfInt
@@ -2925,7 +2927,7 @@ def LamWF.mkNatVal {ltv : LamTyVal} : LamWF ltv ⟨lctx, .mkNatVal n, .base .nat
 
 def LamWF.mkRatVal {ltv : LamTyVal} : LamWF ltv ⟨lctx, .mkRatVal n d, .base .rat⟩ := .ofBase (.ofRatVal n d)
 
-def LamWF.mkSciVal {ltv : LamTyVal} : LamWF ltv ⟨lctx, .mkSciVal n sgn exp, .base .rat⟩ := .ofBase (.ofSciVal n sgn exp)
+def LamWF.mkSciVal {ltv : LamTyVal} : LamWF ltv ⟨lctx, .mkSciVal n sgn exp, .base .real⟩ := .ofBase (.ofSciVal n sgn exp)
 
 def LamWF.mkNatBinOp {ltv : LamTyVal}
   (wfop : NatConst.LamWF binOp (.func (.base .nat) (.func (.base .nat) s)))
