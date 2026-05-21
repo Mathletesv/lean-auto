@@ -232,7 +232,7 @@ private def lamBaseTerm2STerm_Arity2 (arg1 arg2 : STerm) : LamBaseTerm → Trans
 | .qcst .qadd => return .qStrApp "+" #[arg1, arg2]
 | .qcst .qsub => return .qStrApp "-" #[arg1, arg2]
 | .qcst .qmul => return .qStrApp "*" #[arg1, arg2]
-| .qcst .qdiv => return .qStrApp "/" #[arg1, arg2]
+| .qcst .qdiv => return .qStrApp "rdiv" #[arg1, arg2]
 | .qcst .qle  => return .qStrApp "<=" #[arg1, arg2]
 | .qcst .qlt  => return .qStrApp "<" #[arg1, arg2]
 | .qcst .qmax => return .qStrApp "ite" #[.qStrApp "<=" #[arg1, arg2], arg2, arg1]
@@ -240,7 +240,7 @@ private def lamBaseTerm2STerm_Arity2 (arg1 arg2 : STerm) : LamBaseTerm → Trans
 | .rcst .radd => return .qStrApp "+" #[arg1, arg2]
 | .rcst .rsub => return .qStrApp "-" #[arg1, arg2]
 | .rcst .rmul => return .qStrApp "*" #[arg1, arg2]
-| .rcst .rdiv => return .qStrApp "/" #[arg1, arg2]
+| .rcst .rdiv => return .qStrApp "rdiv" #[arg1, arg2]
 | .rcst .rle  => return .qStrApp "<=" #[arg1, arg2]
 | .rcst .rlt  => return .qStrApp "<" #[arg1, arg2]
 | .rcst .rmax => return .qStrApp "ite" #[.qStrApp "<=" #[arg1, arg2], arg2, arg1]
@@ -556,7 +556,9 @@ def termAuxDecls : Array IR.SMT.Command :=
     .defFun false "iediv" #[("x", .app (.symb "Int") #[]), ("y", .app (.symb "Int") #[])] (.app (.symb "Int") #[])
       (.qStrApp "ite" #[.qStrApp "=" #[.qStrApp "y" #[], .sConst (.num 0)], .sConst (.num 0), .qStrApp "div" #[.qStrApp "x" #[], .qStrApp "y" #[]]]),
     .defFun false "iemod" #[("x", .app (.symb "Int") #[]), ("y", .app (.symb "Int") #[])] (.app (.symb "Int") #[])
-      (.qStrApp "ite" #[.qStrApp "=" #[.qStrApp "y" #[], .sConst (.num 0)], .qStrApp "x" #[], .qStrApp "mod" #[.qStrApp "x" #[], .qStrApp "y" #[]]])
+      (.qStrApp "ite" #[.qStrApp "=" #[.qStrApp "y" #[], .sConst (.num 0)], .qStrApp "x" #[], .qStrApp "mod" #[.qStrApp "x" #[], .qStrApp "y" #[]]]),
+    .defFun false "rdiv" #[("x", .app (.symb "Real") #[]), ("y", .app (.symb "Real") #[])] (.app (.symb "Real") #[])
+      (.qStrApp "ite" #[.qStrApp "=" #[.qStrApp "y" #[], rat2STerm 0], rat2STerm 0, .qStrApp "/" #[.qStrApp "x" #[], .qStrApp "y" #[]]])
    ]
 
 /--

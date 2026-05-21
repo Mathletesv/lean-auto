@@ -1318,9 +1318,11 @@ def reifMapLam0Arg4NoLit : Std.HashMap (Name × Name × Name) (Expr × LamTerm) 
     ((``HMul.hMul, ``Rat, ``Rat),             (.const ``Rat.mul [], .base .qmul)),
     ((``HMul.hMul, ``Real, ``Real),           (.const ``Real.mul [], .base .rmul)),
     ((``HDiv.hDiv, ``Nat, ``Nat),             (.const ``Nat.div [], .base .ndiv)),
-    ((``HDiv.hDiv, ``Int, ``Int),             (.const ``Int.tdiv [], .base .idiv)),
+    ((``HDiv.hDiv, ``Int, ``Int),             (.const ``Int.ediv [], .base .iediv)),
     ((``HDiv.hDiv, ``Rat, ``Rat),             (.const ``Rat.div [], .base .qdiv)),
     ((``HDiv.hDiv, ``Real, ``Real),           (.const ``Real.div [], .base .rdiv)),
+    ((``HMod.hMod, ``Nat, ``Nat),             (.const ``Nat.mod [], .base .nmod)),
+    ((``HMod.hMod, ``Int, ``Int),             (.const ``Int.emod [], .base .iemod)),
     ((``HAppend.hAppend, ``String, ``String), (.const ``String.append [], .base .sapp))
   ]
 

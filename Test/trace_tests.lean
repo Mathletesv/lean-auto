@@ -31,43 +31,75 @@ example (x y z : Int) (h1 : x > y + 5) (h2 : y > z) : x ≠ z := by
 example (x y z : Int) (h1 : x - 5 > y) (h2 : y > z) : x ≠ z := by
   auto
 
-example (x y z : Rat) (h1 : x > y) (h2 : y > z) : x ≠ z := by
+example (x y z : Real) (h1 : x > y) (h2 : y > z) : x ≠ z := by
+  auto
+
+example (x y : Nat) (h1 : x * x > y * y) : x > y := by
   auto
 
 example (x y z : Real) (h1 : x > y) (h2 : y > z) : x ≠ z := by
   auto
 
-example (x y z : Rat) (h1 : x > y + 5) (h2 : y > z) : x ≠ z := by
+example (x y z : Real) (h1 : x > y + 5) (h2 : y > z) : x ≠ z := by
   auto
 
-example (x : Rat × Rat) : x.1 ≤ x.2 ∨ x.1 > x.2 := by
+example (x : Real × Real) : x.1 ≤ x.2 ∨ x.1 > x.2 := by
   auto
 
-#eval (5 / 3 : Rat) / 0
+example : (10 : Int) / (0 : Int) = 0 := by
+  auto
 
-#eval (5.0 : Rat) / 0
+example : 10 / 0 = (0 : Int) := by
+  auto
+
+example : 10 * 0 = (0 : Int) := by
+  auto
+
+example : 10 % 0 = (10 : Int) := by
+  auto
+
+example : 10 / 0 = (0 : Real) := by
+  auto
+
+example (h1 : ∀ x : Real, Real.sqrt x * Real.sqrt x = x) : Real.sqrt 4.0 = 2 := by
+  auto
+
+example : 10 / 0 = (0 : Real) := by
+  auto
+
+example : 10 % (0 : Real) = 10 := by
+  simp
+
+-- div by 0 is always 0, x % 0 is always x?
+
+#eval (5 / 3 : Real) / 0
+
+#eval (5.0 : Real) / 0
 
 #eval (OfScientific.ofScientific 5 False 5) / 0
 
-example : 2.4 = (2.4 : Rat) := by
-  auto
-
-example : 1 + (2.4 : Rat) = 3.4 := by
+example : 2.4 = (2.4 : Real) := by
   auto
 
 example : 1 + (2.4 : Real) = 3.4 := by
   auto
 
-example : 1 + (2 : Rat) = 3 := by
+example : 1 + (2.4 : Real) = 3.4 := by
+  auto
+
+example : 1 + (2 : Real) = 3 := by
   auto
 
 example : 1 + (-1 : Real) = 0 := by
   auto
 
-example : (1 + (2.4 : Rat) : Real) = ((3.4 : Rat) : Real) := by
+example : (0 : Real) = 0 := by
   auto
 
-example : 1 + (24 / 10 : Rat) = 17 / 5 := by
+example : (1 + (2.4 : Real) : Real) = ((3.4 : Real) : Real) := by
+  auto
+
+example : 1 + (24 / 10 : Real) = 17 / 5 := by
   auto
 
 example : 1 + 5 * 3 = 16 := by
@@ -76,19 +108,19 @@ example : 1 + 5 * 3 = 16 := by
 example : 0 = 10 / 0 := by
   auto
 
-example : (1 : Rat) + 2.4 * 1 = 34 / 10 := by
+example : (1 : Real) + 2.4 * 1 = 34 / 10 := by
   auto
 
-example : 1 + (0.24 * 10 : Rat) = (34 / 10 : Real) := by
+example : 1 + (0.24 * 10 : Real) = (34 / 10 : Real) := by
   auto
 
-example (x y z : Rat) (h1 : x > y + (5 / 3)) (h2 : y > z) : x ≠ z := by
+example (x y z : Real) (h1 : x > y + (5 / 3)) (h2 : y > z) : x ≠ z := by
   auto
 
 example (f : Int -> Int) (h1 : ∀ x y, x > y -> f x > f y) : ∀ x y, x ≠ y -> f x ≠ f y := by
   auto
 
-example (f : Rat -> Rat) (h1 : ∀ x y, x > y -> f x > f y) : ∀ x y, x ≠ y -> f x ≠ f y := by
+example (f : Real -> Real) (h1 : ∀ x y, x > y -> f x > f y) : ∀ x y, x ≠ y -> f x ≠ f y := by
   auto
 
 example (f : Nat → Nat) (h1 : ∀ x y, x < y → f x < y) : f 0 = 0 := by
@@ -96,59 +128,62 @@ example (f : Nat → Nat) (h1 : ∀ x y, x < y → f x < y) : f 0 = 0 := by
 
 -- Old QuerySMT Tests
 -- Simple Int Inequalities
-example (x y z : Rat) : x < y → y < z → x < z := by
+example (x y z : Real) : x < y → y < z → x < z := by
   auto
 
-example (x y z : Rat) : x < y → z < x → ¬z = y := by
+example (x y z : Real) : x < y → z < x → ¬z = y := by
   auto
 
-example (w x : Int) (y z : Rat) : w <= x → x <= y → y <= z → z <= w → w = y := by
+example (w x : Int) (y z : Real) : w <= x → x <= y → y <= z → z <= w → w = y := by
   auto
 
-example (x : Int) (y z : Rat) : x <= y → y <= z → x = z → x = y ∧ y = z := by
+example (x : Int) (y z : Real) : x <= y → y <= z → x = z → x = y ∧ y = z := by
   auto
 
-example (x y z : Rat) : x > y + z → x < y → z < 0 := by
+example (x y z : Real) : x > y + z → x < y → z < 0 := by
   auto
 
-example (f : Int → Rat) (h1 : ∀ x y : Int, x < y → f x < f y) : ∀ x y : Int, x ≠ y → f x ≠ f y := by
+example (f : Int → Real) (h1 : ∀ x y : Int, x < y → f x < f y) : ∀ x y : Int, x ≠ y → f x ≠ f y := by
   auto
 
-example (f : Rat → Rat) (h1 : ∀ x y : Rat, f x + f y ≤ x + y) (h2 : f 0 = 0) : ∀ x : Rat, f x ≤ x := by
+example (f : Real → Real) (h1 : ∀ x y : Real, f x + f y ≤ x + y) (h2 : f 0 = 0) : ∀ x : Real, f x ≤ x := by
   auto
 
-example (f : Rat → Rat) (h1 : ∀ x y : Rat, f x = f y → x = y) : ∀ x y : Rat, x ≠ y → f x ≠ f y := by
+example (f : Real → Real) (h1 : ∀ x y : Real, f x = f y → x = y) : ∀ x y : Real, x ≠ y → f x ≠ f y := by
   auto
 
-example (f : Rat → Int) (h1 : ∀ x y : Rat, x < y → f x < f y) : ∀ x y : Rat, f x = f y → x = y := by
+example (f : Real → Int) (h1 : ∀ x y : Real, x < y → f x < f y) : ∀ x y : Real, f x = f y → x = y := by
  auto
 
-example (f g : Rat → Rat) (h1 : ∀ x : Rat, f (g x) = x) : (∀ x y : Rat, x ≠ y → g x ≠ g y) ∧ (∀ y : Rat, ∃ x : Rat, f x = y) := by
+example (f g : Real → Real) (h1 : ∀ x : Real, f (g x) = x) : (∀ x y : Real, x ≠ y → g x ≠ g y) ∧ (∀ y : Real, ∃ x : Real, f x = y) := by
   auto
 
 -- Complex Algebraic Inequalities
 
-example : ∀ y z w : Rat, ∃ x : Rat, x * y > z ∧ x * w < z → y > w  := by
+example : ∀ y z w : Real, ∃ x : Real, x * y > z ∧ x * w < z → y > w  := by
   auto
 
 example : ∀ y z w : Real, ∃ x : Real, x * y > z ∧ x * w < z → y > w  := by
   auto
 
-example (a b c d : Rat) (h1 : a ≤ b) (h2 : c < d) : a + c < b + d := by
+example (a b c d : Real) (h1 : a ≤ b) (h2 : c < d) : a + c < b + d := by
   auto
 
 example (a b c d : Real) (h1 : a ≤ b) (h2 : c < d) : a + c < b + d := by
   auto
 
-example (x y : Rat) (h : 2 * x + 1 < 2 * y - (2 : Int)) : x < y := by
+example (x y : Real) (h : 2 * x + 1 < 2 * y - 2) : x < y := by
+  auto
+
+example (x y : Real) (h : 2 * x + 1 < 2 * y - (2 : Int)) : x < y := by  -- remove nat cast
   auto
 
 -- [debug] not atomized: 1
--- [debug] process app @OfNat.ofNat ℚ 1, Rat.instOfNat, 1
--- [debug] process app more: [ℚ, 1, Rat.instOfNat] @OfNat.ofNat OfNat.ofNat [0]
+-- [debug] process app @OfNat.ofNat ℚ 1, Real.instOfNat, 1
+-- [debug] process app more: [ℚ, 1, Real.instOfNat] @OfNat.ofNat OfNat.ofNat [0]
 -- [debug] otherProcess 1
--- [debug] processComplexTermExpr: 1, 0, @OfNat.ofNat, [ℚ, 1, Rat.instOfNat]
--- [debug] happened : 1 @OfNat.ofNat ℚ 1 Rat.instOfNat
+-- [debug] processComplexTermExpr: 1, 0, @OfNat.ofNat, [ℚ, 1, Real.instOfNat]
+-- [debug] happened : 1 @OfNat.ofNat ℚ 1 Real.instOfNat
 
 example (x y : Real) (h : 2 * x + 1 < 2 * y - 2) : x < y := by
   auto
