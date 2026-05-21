@@ -129,7 +129,6 @@ private def lamBaseSort2SSort : LamBaseSort → SSort
 -- `Nat ≅ {x : Int | x ≥ 0}`
 | .nat    => .app (.symb "Int") #[]
 | .int    => .app (.symb "Int") #[]
-| .rat    => .app (.symb "Real") #[]
 | .real   => .app (.symb "Real") #[]
 | .isto0 p =>
   match p with
@@ -173,11 +172,6 @@ private def addNatConstraint? (sni : SMTNamingInfo) (name : String) (s : LamSort
 private def int2STerm : Int → STerm
 | .ofNat n   => .sConst (.num n)
 | .negSucc n => .qIdApp (QualIdent.ofString "-") #[.sConst (.num (Nat.succ n))]
-
-private def rat2STerm (r : Rat) : STerm :=
-  let n := r.num
-  let d := r.den
-  .qStrApp "/" #[int2STerm n, .sConst (.num d)]
 
 private def lamBvOfNat2String (sni : SMTNamingInfo) (n : Nat) : TransM LamAtomic String := do
   if !(← hIn (.bvOfNat n)) then
@@ -229,14 +223,6 @@ private def lamBaseTerm2STerm_Arity2 (arg1 arg2 : STerm) : LamBaseTerm → Trans
 | .icst .ilt  => return .qStrApp "<" #[arg1, arg2]
 | .icst .imax => return .qStrApp "ite" #[.qStrApp "<=" #[arg1, arg2], arg2, arg1]
 | .icst .imin => return .qStrApp "ite" #[.qStrApp "<=" #[arg1, arg2], arg1, arg2]
-| .qcst .qadd => return .qStrApp "+" #[arg1, arg2]
-| .qcst .qsub => return .qStrApp "-" #[arg1, arg2]
-| .qcst .qmul => return .qStrApp "*" #[arg1, arg2]
-| .qcst .qdiv => return .qStrApp "rdiv" #[arg1, arg2]
-| .qcst .qle  => return .qStrApp "<=" #[arg1, arg2]
-| .qcst .qlt  => return .qStrApp "<" #[arg1, arg2]
-| .qcst .qmax => return .qStrApp "ite" #[.qStrApp "<=" #[arg1, arg2], arg2, arg1]
-| .qcst .qmin => return .qStrApp "ite" #[.qStrApp "<=" #[arg1, arg2], arg1, arg2]
 | .rcst .radd => return .qStrApp "+" #[arg1, arg2]
 | .rcst .rsub => return .qStrApp "-" #[arg1, arg2]
 | .rcst .rmul => return .qStrApp "*" #[arg1, arg2]
@@ -293,14 +279,9 @@ private def lamBaseTerm2STerm_Arity1 (sni : SMTNamingInfo) (arg : STerm) : LamBa
 | .icst .inegSucc        => return .qStrApp "-" #[int2STerm (-1), arg]
 | .icst .ineg            => return .qStrApp "-" #[int2STerm 0, arg]
 | .icst .iabs            => return .qStrApp "abs" #[arg]
-| .qcst .qofNat          => return .qStrApp "/" #[arg, int2STerm 1]
-| .qcst .qofInt          => return .qStrApp "/" #[arg, int2STerm 1]
-| .qcst .qneg            => return .qStrApp "-" #[int2STerm 0, arg]
-| .qcst .qabs            => return .qStrApp "abs" #[arg]
 | .rcst .rofNat          => return if let .sConst (.num n) := arg then .sConst (.scientific n false 0) else .qStrApp "/" #[arg, int2STerm 1]
 | .rcst .rofInt          => return if let .sConst (.num n) := arg then .sConst (.scientific n false 0) else .qStrApp "/" #[arg, int2STerm 1]
-| .rcst .rofRat          => return arg
-| .rcst .rneg            => return .qStrApp "-" #[int2STerm 0, arg]
+| .rcst .rneg            => return .qStrApp "-" #[.sConst (.scientific 0 false 0), arg]
 | .rcst .rabs            => return .qStrApp "abs" #[arg]
 | .scst .slength         => return .qStrApp "str.len" #[arg]
 -- To SMT solvers `.bvofNat` is the same as `.bvofInt`
@@ -366,8 +347,7 @@ private def lamBaseTerm2STerm_Arity0 : LamBaseTerm → TransM LamAtomic STerm
 | .bcst .trueb        => return .qStrApp "true" #[]
 | .bcst .falseb       => return .qStrApp "false" #[]
 | .ncst (.natVal n)   => return .sConst (.num n)
-| .qcst (.ratVal n d) => return rat2STerm (mkRat n d)
-| .rcst (.sciVal n sgn exp) => return .sConst (.scientific n sgn exp) -- make a smt .float
+| .rcst (.sciVal n sgn exp) => return .sConst (.scientific n sgn exp)
 | .scst (.strVal s)   => return .sConst (.str s)
 | .bvcst (.bvVal n i) => return bitVec2STerm n i
 | t                   => throwError "{decl_name%} :: The arity of {repr t} is not 0"

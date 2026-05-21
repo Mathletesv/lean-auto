@@ -17,16 +17,8 @@ namespace LamCstrD
   abbrev Int.gt (a b : Int) := Int.lt b a
   abbrev Int.max (x y : Int) : Int := Max.max x y
   abbrev Int.min (x y : Int) : Int := Min.min x y
-  abbrev Rat.ofNat (n : Nat) := Rat.ofInt (Int.ofNat n)
-  abbrev Rat.le (a b : Rat) := LE.le a b
-  abbrev Rat.lt (a b : Rat) := LT.lt a b
-  abbrev Rat.ge (a b : Rat) := Rat.le b a
-  abbrev Rat.gt (a b : Rat) := Rat.lt b a
-  abbrev Rat.max (x y : Rat) : Rat := Max.max x y
-  abbrev Rat.min (x y : Rat) : Rat := Min.min x y
   abbrev Real.ofNat (n : Nat) := (n : ℝ)
   abbrev Real.ofInt (i : Int) := (i : ℝ)
-  abbrev Real.ofRat (q : Rat) := (q : ℝ)
   abbrev Real.neg (r : Real) := -r
   abbrev Real.abs (r : Real) := |r|
   abbrev Real.add (a b : Real) := a + b
@@ -201,7 +193,6 @@ namespace Lam2D
   | .bool    => .const ``Bool []
   | .nat     => .const ``Nat []
   | .int     => .const ``Int []
-  | .rat     => .const ``Rat []
   | .real    => .const ``Real []
   | .isto0 p =>
     match p with
@@ -259,27 +250,11 @@ namespace Lam2D
   | .imax     => return .const ``Int.max []
   | .imin     => return .const ``Int.min []
 
-  def interpRatConstAsUnlifted : RatConst → CoreM Expr
-  | .ratVal n d => return toExpr (mkRat n d)
-  | .qofNat   => return .const ``Rat.ofNat []
-  | .qofInt   => return .const ``Rat.ofInt []
-  | .qneg     => return .const ``Rat.neg []
-  | .qabs     => return .const ``Rat.abs []
-  | .qadd     => return .const ``Rat.add []
-  | .qsub     => return .const ``Rat.sub []
-  | .qmul     => return .const ``Rat.mul []
-  | .qdiv     => return .const ``Rat.div []
-  | .qle      => return .const ``Rat.le []
-  | .qlt      => return .const ``Rat.lt []
-  | .qmax     => return .const ``Rat.max []
-  | .qmin     => return .const ``Rat.min []
-
   def interpRealConstAsUnlifted : RealConst → CoreM Expr
   | .sciVal n sgn exp => return ← (Lean.Meta.mkAppOptM ``OfScientific.ofScientific
     #[some (.const ``Real []), none, some (toExpr n), some (toExpr sgn), some (toExpr exp)]).run'
   | .rofNat   => return .const ``Real.ofNat []
   | .rofInt   => return .const ``Real.ofInt []
-  | .rofRat   => return .const ``Real.ofRat []
   | .rneg     => return .const ``Real.neg []
   | .rabs     => return .const ``Real.abs []
   | .radd     => return .const ``Real.add []
@@ -385,7 +360,6 @@ namespace Lam2D
   | .bcst bc    => Lam2D.interpBoolConstAsUnlifted bc
   | .ncst nc    => Lam2D.interpNatConstAsUnlifted nc
   | .icst ic    => Lam2D.interpIntConstAsUnlifted ic
-  | .qcst qc    => Lam2D.interpRatConstAsUnlifted qc
   | .rcst rc    => Lam2D.interpRealConstAsUnlifted rc
   | .scst sc    => Lam2D.interpStringConstAsUnlifted sc
   | .bvcst bvc  => Lam2D.interpBitVecConstAsUnlifted bvc
