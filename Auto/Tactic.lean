@@ -4,6 +4,7 @@ import Auto.Solver.SMT
 import Auto.Solver.TPTP
 import Auto.Solver.Native
 import Auto.LemDB
+import Auto.Lib.UnitReal
 open Lean Elab Tactic
 
 initialize
@@ -546,6 +547,7 @@ def evalAuto : Tactic
       absurd.assign proof
 | _ => throwUnsupportedSyntax
 
+open Auto.LamReif Auto.Lam2D Auto.DefaultReal in
 /--
   Run `auto`'s preprocessing and monomorphization to abstract the
   problem into an essentially higher-order problem
@@ -604,7 +606,9 @@ where
     LamReif.printProofs
     Reif.setDeclName? declName?
     let checker ← LamReif.buildCheckerExprFor contra
-    let contra ← Meta.mkAppM ``Embedding.Lam.LamThmValid.getFalse #[checker]
+    let RExpr := if let some h := (← realReconstructionExt.get) then
+      h.baseSort else .const ``Auto.DefaultReal []
+    let contra ← Meta.mkAppM ``Embedding.Lam.LamThmValid.getFalse #[RExpr, checker]
     let (goalFVars, goalId) ← goalId.introN (atomVals.size + etoms.size)
     let (goalCtx, goalId) ← goalId.introN (exportInhs.size + exportFacts.size)
     let goalCtxWithDeriv := goalCtx.zip ((nonemptyWithDTrs ++ validWithDTrs).map Prod.snd)

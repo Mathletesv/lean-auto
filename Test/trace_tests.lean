@@ -26,13 +26,16 @@ set_option trace.auto.tptp.printQuery true
 
 #eval ((5 : ℤ) : ℝ)
 
+-- set_option auto.checker.buildMode "indirectReduce_reflection" in
 example (x y z : Int) (h1 : x > y + 5) (h2 : y > z) : x ≠ z := by
+  mono
   auto
 
 example (x y z : Int) (h1 : x - 5 > y) (h2 : y > z) : x ≠ z := by
   auto
 
 example (x y z : Real) (h1 : x > y) (h2 : y > z) : x ≠ z := by
+  mono
   auto
 
 example (x y : Nat) (h1 : x * x > y * y) : x > y := by
@@ -45,6 +48,7 @@ example (x y z : Real) (h1 : x > y + 5) (h2 : y > z) : x ≠ z := by
   auto
 
 example (x : Real × Real) : x.1 ≤ x.2 ∨ x.1 > x.2 := by
+  mono
   auto
 
 example : (10 : Int) / (0 : Int) = 0 := by
@@ -94,7 +98,12 @@ example : (5.00000000000001 + 10) = (15.00000000000001 : Real) := by
 example : 1 + (2 : Real) = 3 := by
   auto
 
+example : 1 - (1 : Int) = 0 := by
+  mono
+  auto
+
 example : 1 + (-1 : Real) = 0 := by
+  mono
   auto
 
 example : (0 : Real) = 0 := by
@@ -113,6 +122,7 @@ example : 0 = 10 / 0 := by
   auto
 
 example : (1 : Real) + 2.4 * 1 = 34 / 10 := by
+  mono
   auto
 
 example : 1 + (0.24 * 10 : Real) = (34 / 10 : Real) := by
