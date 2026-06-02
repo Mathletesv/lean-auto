@@ -1,10 +1,9 @@
 import Auto.Lib.IsomType
 import Auto.Lib.StringExtra
 import Auto.Lib.BoolExtra
-import Mathlib.Data.Real.Basic
+import Auto.Lib.RealType
 
 namespace Auto.Embedding
-
 
 structure GLift.{u, v} (α : Sort u) : Sort (max u (v + 1)) where
   /-- Lift a value into `GLift α` -/    up ::
@@ -109,40 +108,40 @@ def imaxLift.{u} (m n : GLift.{1, u} Int) :=
 def iminLift.{u} (m n : GLift.{1, u} Int) :=
   GLift.up (min m.down n.down)
 
-def rofNatLift.{u} (m : GLift.{1, u} Nat) :=
-  GLift.up (m.down : Real)
+def rofNatLift.{u}  {R : Type} [RealTy R] (m : GLift.{1, u} Nat) : GLift.{1, u} R :=
+  GLift.up (Nat.cast m.down : R)
 
-def rofIntLift.{u} (m : GLift.{1, u} Int) :=
-  GLift.up (m.down : Real)
+def rofIntLift.{u} {R : Type} [RealTy R] (m : GLift.{1, u} Int) :=
+  GLift.up (Int.cast m.down : R)
 
-def rnegLift.{u} (m : GLift.{1, u} Real) :=
+def rnegLift.{u} {R : Type} [RealTy R] (m : GLift.{1, u} R) :=
   GLift.up (-m.down)
 
-def rabsLift.{u} (m : GLift.{1, u} Real) :=
-  GLift.up (|m.down|)
+def rabsLift.{u} {R : Type} [RealTy R] (m : GLift.{1, u} R) :=
+  GLift.up (max m.down (-m.down))
 
-def raddLift.{u} (m n : GLift.{1, u} Real) :=
+def raddLift.{u} {R : Type} [RealTy R] (m n : GLift.{1, u} R) :=
   GLift.up (m.down + n.down)
 
-def rsubLift.{u} (m n : GLift.{1, u} Real) :=
+def rsubLift.{u} {R : Type} [RealTy R] (m n : GLift.{1, u} R) :=
   GLift.up (m.down - n.down)
 
-def rmulLift.{u} (m n : GLift.{1, u} Real) :=
+def rmulLift.{u} {R : Type} [RealTy R] (m n : GLift.{1, u} R) :=
   GLift.up (m.down * n.down)
 
-noncomputable def rdivLift.{u} (m n : GLift.{1, u} Real) :=
+noncomputable def rdivLift.{u} {R : Type} [RealTy R] (m n : GLift.{1, u} R) :=
   GLift.up (m.down / n.down)
 
-def rleLift.{u} (m n : GLift.{1, u} Real) :=
+def rleLift.{u} {R : Type} [RealTy R] (m n : GLift.{1, u} R) :=
   GLift.up (LE.le m.down n.down)
 
-def rltLift.{u} (m n : GLift.{1, u} Real) :=
+def rltLift.{u} {R : Type} [RealTy R] (m n : GLift.{1, u} R) :=
   GLift.up (LT.lt m.down n.down)
 
-def rmaxLift.{u} (m n : GLift.{1, u} Real) :=
+def rmaxLift.{u} {R : Type} [RealTy R] (m n : GLift.{1, u} R) :=
   GLift.up (max m.down n.down)
 
-def rminLift.{u} (m n : GLift.{1, u} Real) :=
+def rminLift.{u} {R : Type} [RealTy R] (m n : GLift.{1, u} R) :=
   GLift.up (min m.down n.down)
 
 def sappLift.{u} (m n : GLift.{1, u} String) :=

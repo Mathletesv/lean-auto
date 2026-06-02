@@ -1,0 +1,103 @@
+import Lean
+import Mathlib.Data.Real.Basic
+import Auto.Translation.LamReif
+import Auto.Translation.LamUtils
+
+namespace Auto.MathlibReal
+
+open Lean Auto Auto.Embedding.Lam
+
+noncomputable instance : RealTy ℝ := {}
+
+abbrev Real.ofNat (n : Nat) : Real := (n : Real)
+abbrev Real.ofInt (i : Int) := (i : Real)
+abbrev Real.neg (r : Real) := -r
+abbrev Real.abs (r : Real) := |r|
+abbrev Real.add (a b : Real) := a + b
+abbrev Real.sub (a b : Real) := a - b
+abbrev Real.mul (a b : Real) := a * b
+noncomputable abbrev Real.div (a b : Real) := a / b
+abbrev Real.le (a b : Real) : Prop := LE.le a b
+abbrev Real.lt (a b : Real) : Prop := LT.lt a b
+abbrev Real.ge (a b : Real) : Prop := Real.le b a
+abbrev Real.gt (a b : Real) : Prop := Real.lt b a
+abbrev Real.max (x y : Real) : Real := Max.max x y
+abbrev Real.min (x y : Real) : Real := Min.min x y
+
+def interpRealConstAsUnlifted : RealConst → CoreM Expr
+| .sciVal n sgn exp => return ← (Lean.Meta.mkAppOptM ``OfScientific.ofScientific
+  #[some (.const ``Real []), none, some (toExpr n), some (toExpr sgn), some (toExpr exp)]).run'
+| .rofNat   => return .const ``Real.ofNat []
+| .rofInt   => return .const ``Real.ofInt []
+| .rneg     => return .const ``Real.neg []
+| .rabs     => return .const ``Real.abs []
+| .radd     => return .const ``Real.add []
+| .rsub     => return .const ``Real.sub []
+| .rmul     => return .const ``Real.mul []
+| .rdiv     => return .const ``Real.div []
+| .rle      => return .const ``Real.le []
+| .rlt      => return .const ``Real.lt []
+| .rmax     => return .const ``Real.max []
+| .rmin     => return .const ``Real.min []
+
+def realConstSimpNFList : List (Name × Expr) :=
+let realc := mkConst ``Real
+[
+  (``Real.ofNat , mkApp2 (.const ``Nat.cast [.zero]) realc (mkConst ``Real.instNatCast)),
+  (``Real.ofInt , mkApp2 (.const ``Int.cast [.zero]) realc (mkConst ``Real.instIntCast)),
+  (``Real.neg   , mkApp2 (.const ``Neg.neg [.zero]) realc (mkConst ``Real.instNeg)),
+  (``Real.add   , mkApp4
+    (.const ``HAdd.hAdd [.zero, .zero, .zero]) realc realc realc
+    (mkApp2 (.const ``instHAdd [.zero]) realc (mkConst ``Real.instAdd))),
+  (``Real.sub   , mkApp4
+    (.const ``HSub.hSub [.zero, .zero, .zero]) realc realc realc
+    (mkApp2 (.const ``instHSub [.zero]) realc (mkConst ``Real.instSub))),
+  (``Real.mul   , mkApp4
+    (.const ``HMul.hMul [.zero, .zero, .zero]) realc realc realc
+    (mkApp2 (.const ``instHMul [.zero]) realc (mkConst ``Real.instMul))),
+  -- (``Real.div   , mkApp4
+  --   (.const ``HDiv.hDiv [.zero, .zero, .zero]) realc realc realc
+  --   (mkApp2 (.const ``instHDiv [.zero]) realc (mkConst ``Real.instDivReal))),
+  (``Real.le    , mkApp2 (.const ``LE.le [.zero]) realc (mkConst ``Real.instLE)),
+  (``Real.lt    , mkApp2 (.const ``LT.lt [.zero]) realc (mkConst ``Real.instLT)),
+  (``Real.max   , mkApp2 (.const ``Max.max [.zero]) realc (mkConst ``Real.instMax)),
+  (``Real.min   , mkApp2 (.const ``Min.min [.zero]) realc (mkConst ``Real.instMin))
+]
+
+open Lam2D
+
+initialize do
+  realReconstructionExt.set (some {
+    baseSort := .const ``Real []
+    interpConst := interpRealConstAsUnlifted
+    simpNFList := realConstSimpNFList
+  })
+
+open LamReif
+
+initialize do
+  realReifExt.set (some {
+    realTypeName := ``Real
+    realTypeExpr := .const ``Real []
+    arg2NoLit := [
+      ((``NatCast.natCast, ``Real), (.const ``Real.ofNat [], .base .rofNat)),
+      ((``IntCast.intCast, ``Real), (.const ``Real.ofInt [], .base .rofInt)),
+      ((``Neg.neg,  ``Real), (.const ``Real.neg [], .base .rneg)),
+      ((`Abs.abs,   ``Real), (.const ``Real.abs [], .base .rabs)),
+      ((``LE.le,    ``Real), (.const ``Real.le [], .base .rle)),
+      ((``GE.ge,    ``Real), (.const ``Real.ge [], .rge)),
+      ((``LT.lt,    ``Real), (.const ``Real.lt [], .base .rlt)),
+      ((``GT.gt,    ``Real), (.const ``Real.gt [], .rgt)),
+      ((``Max.max,  ``Real), (.const ``Real.max [], .base .rmax)),
+      ((``Min.min,  ``Real), (.const ``Real.min [], .base .rmin))
+    ]
+    arg4NoLit := [
+      ((``HAdd.hAdd, ``Real, ``Real), (.const ``Real.add [], .base .radd)),
+      ((``HSub.hSub, ``Real, ``Real), (.const ``Real.sub [], .base .rsub)),
+      ((``HMul.hMul, ``Real, ``Real), (.const ``Real.mul [], .base .rmul)),
+      ((``HDiv.hDiv, ``Real, ``Real), (.const ``Real.div [], .base .rdiv))
+    ]
+    ofNatReal := fun nv => some (.mkROfNat (.base (.natVal nv)))
+  })
+
+end Auto.MathlibReal

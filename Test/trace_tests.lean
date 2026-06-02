@@ -1,5 +1,6 @@
 import Auto.Tactic
-import Mathlib
+import Auto.MathlibReal
+-- import Mathlib
 
 -- Standard Preprocessing Configs
 set_option auto.redMode "reducible"

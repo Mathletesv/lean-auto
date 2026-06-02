@@ -17,20 +17,6 @@ namespace LamCstrD
   abbrev Int.gt (a b : Int) := Int.lt b a
   abbrev Int.max (x y : Int) : Int := Max.max x y
   abbrev Int.min (x y : Int) : Int := Min.min x y
-  abbrev Real.ofNat (n : Nat) := (n : ℝ)
-  abbrev Real.ofInt (i : Int) := (i : ℝ)
-  abbrev Real.neg (r : Real) := -r
-  abbrev Real.abs (r : Real) := |r|
-  abbrev Real.add (a b : Real) := a + b
-  abbrev Real.sub (a b : Real) := a - b
-  abbrev Real.mul (a b : Real) := a * b
-  noncomputable abbrev Real.div (a b : Real) := a / b
-  abbrev Real.le (a b : Real) := LE.le a b
-  abbrev Real.lt (a b : Real) := LT.lt a b
-  abbrev Real.ge (a b : Real) := Real.le b a
-  abbrev Real.gt (a b : Real) := Real.lt b a
-  abbrev Real.max (x y : Real) : Real := Max.max x y
-  abbrev Real.min (x y : Real) : Real := Min.min x y
   abbrev String.ge (a b : String) : Prop := b = a ∨ b < a
   abbrev String.gt (a b : String) : Prop := b < a
   abbrev BitVec.uge (a b : BitVec n) : Bool := BitVec.ule b a
@@ -188,18 +174,28 @@ namespace Lam2D
 
   open Embedding Lam LamCstrD
 
-  def interpLamBaseSortAsUnlifted : LamBaseSort → Expr
-  | .prop    => .sort .zero
-  | .bool    => .const ``Bool []
-  | .nat     => .const ``Nat []
-  | .int     => .const ``Int []
-  | .real    => .const ``Real []
+  structure RealReconstructionHandler where
+    baseSort    : Expr
+    interpConst : RealConst → CoreM Expr
+    simpNFList  : List (Name × Expr)
+
+  initialize realReconstructionExt : IO.Ref (Option RealReconstructionHandler) ← IO.mkRef none
+
+  def interpLamBaseSortAsUnlifted : LamBaseSort → CoreM Expr
+  | .prop    => return .sort .zero
+  | .bool    => return .const ``Bool []
+  | .nat     => return .const ``Nat []
+  | .int     => return .const ``Int []
+  | .real    => do
+    let .some h ← realReconstructionExt.get
+      | throwError "reals require `import Auto.MathlibReal`"
+    return h.baseSort
   | .isto0 p =>
     match p with
-    | .xH => .const ``String []
-    | .xO .xH => .const ``Empty []
-    | _   => .const ``Empty []
-  | .bv n    => .app (.const ``BitVec []) (.lit (.natVal n))
+    | .xH => return .const ``String []
+    | .xO .xH => return .const ``Empty []
+    | _   => return .const ``Empty []
+  | .bv n    => return .app (.const ``BitVec []) (.lit (.natVal n))
 
   def interpPropConstAsUnlifted : PropConst → CoreM Expr
   | .trueE      => return .const ``True []
@@ -249,22 +245,6 @@ namespace Lam2D
   | .ilt      => return .const ``Int.lt []
   | .imax     => return .const ``Int.max []
   | .imin     => return .const ``Int.min []
-
-  def interpRealConstAsUnlifted : RealConst → CoreM Expr
-  | .sciVal n sgn exp => return ← (Lean.Meta.mkAppOptM ``OfScientific.ofScientific
-    #[some (.const ``Real []), none, some (toExpr n), some (toExpr sgn), some (toExpr exp)]).run'
-  | .rofNat   => return .const ``Real.ofNat []
-  | .rofInt   => return .const ``Real.ofInt []
-  | .rneg     => return .const ``Real.neg []
-  | .rabs     => return .const ``Real.abs []
-  | .radd     => return .const ``Real.add []
-  | .rsub     => return .const ``Real.sub []
-  | .rmul     => return .const ``Real.mul []
-  | .rdiv     => return .const ``Real.div []
-  | .rle      => return .const ``Real.le []
-  | .rlt      => return .const ``Real.lt []
-  | .rmax     => return .const ``Real.max []
-  | .rmin     => return .const ``Real.min []
 
   def interpStringConstAsUnlifted : StringConst → CoreM Expr
   | .strVal s  => return .lit (.strVal s)
@@ -335,7 +315,7 @@ namespace Lam2D
     let .some e := tyVal.get? n
       | throwError "{decl_name%} :: Cannot find fvarId assigned to type atom {n}"
     return e
-  | .base b => return Lam2D.interpLamBaseSortAsUnlifted b
+  | .base b => return ← Lam2D.interpLamBaseSortAsUnlifted b
   | .func s₁ s₂ => do
     return .forallE `_ (← interpLamSortAsUnlifted tyVal s₁) (← interpLamSortAsUnlifted tyVal s₂) .default
 
@@ -360,7 +340,10 @@ namespace Lam2D
   | .bcst bc    => Lam2D.interpBoolConstAsUnlifted bc
   | .ncst nc    => Lam2D.interpNatConstAsUnlifted nc
   | .icst ic    => Lam2D.interpIntConstAsUnlifted ic
-  | .rcst rc    => Lam2D.interpRealConstAsUnlifted rc
+  | .rcst rc    => do
+    let .some h ← realReconstructionExt.get
+      | throwError "reals require `import Auto.MathlibReal`"
+    h.interpConst rc
   | .scst sc    => Lam2D.interpStringConstAsUnlifted sc
   | .bvcst bvc  => Lam2D.interpBitVecConstAsUnlifted bvc
   | .ocst oc    => interpOtherConstAsUnlifted tyVal oc

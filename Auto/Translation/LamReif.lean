@@ -409,6 +409,15 @@ def newInhabitation (inh : Expr) (deriv : DTr) (s : LamSort) : ReifM Unit := do
   let pos ← addREntryToRTable (.nonempty s)
   setInhabitations ((← getInhabitations).insert s (inh, deriv, pos))
 
+structure RealReifHandler where
+  realTypeName : Name
+  realTypeExpr : Expr
+  arg2NoLit    : List ((Name × Name) × (Expr × LamTerm))
+  arg4NoLit    : List ((Name × Name × Name) × (Expr × LamTerm))
+  ofNatReal    : Nat → Option LamTerm
+
+initialize realReifExt : IO.Ref (Option RealReifHandler) ← IO.mkRef none
+
 /-
   Computes `upFunc` and `downFunc` between `s.interpAsUnlifted` and `s.interpAsLifted`
   · `upFunc` is such that `upFunc f` is equivalent to `f↑`
@@ -446,8 +455,10 @@ partial def updownFunc (s : LamSort) : ReifM (Expr × Expr × Expr × Expr) :=
     | .int =>
       let ty := Expr.const ``Int []
       return (liftup₁ ty, liftdown₁ ty, ty, lift₁ ty)
-    | .real =>
-      let ty := Expr.const ``Real []
+    | .real => do
+      let .some h ← realReifExt.get
+        | throwError "{decl_name%} :: real sort requires importing `Auto.MathlibReal`"
+      let ty := h.realTypeExpr
       return (liftup₁ ty, liftdown₁ ty, ty, lift₁ ty)
     | .isto0 p =>
       let ty :=
@@ -998,7 +1009,6 @@ def processTypeExpr (e : Expr) : ReifM LamSort := do
   | .const ``Bool [] => return .base .bool
   | .const ``Nat [] => return .base .nat
   | .const ``Int [] => return .base .int
-  | .const ``Real [] => return .base .real
   | .const ``String [] => return .base .string
   | .const ``Empty [] => return .base .empty
   | .app (.const ``BitVec []) nExpr =>
@@ -1006,6 +1016,10 @@ def processTypeExpr (e : Expr) : ReifM LamSort := do
       return .base (.bv n)
     else
       newTypeExpr e
+  | e@(.const name []) => do
+    if let .some h ← realReifExt.get then
+      if name == h.realTypeName then return .base .real
+    newTypeExpr e
   | _ => newTypeExpr e
 
 -- At this point, there should only be non-dependent `∀`s in the type.
@@ -1214,34 +1228,24 @@ open LamCstrD in
 def reifMapLam0Arg2NoLit : Std.HashMap (Name × Name) (Expr × LamTerm) :=
   Std.HashMap.ofList [
     ((``NatCast.natCast, ``Int), (.const ``Int.ofNat [], .base .iofNat)),
-    ((``NatCast.natCast, ``Real), (.const ``Real.ofNat [], .base .rofNat)),
-    ((``IntCast.intCast, ``Real), (.const ``Real.ofInt [], .base .rofInt)),
     ((``Neg.neg, ``Int),         (.const ``Int.neg [], .base .ineg)),
-    ((``Neg.neg, ``Real),        (.const ``Real.neg [], .base .rneg)),
     ((`Abs.abs, ``Int),          (.const ``Int.abs [], .base .iabs)),
-    ((`Abs.abs, ``Real),          (.const ``Real.abs [], .base .rabs)),
     ((``LE.le, ``Nat),           (.const ``Nat.le [], .base .nle)),
     ((``LE.le, ``Int),           (.const ``Int.le [], .base .ile)),
-    ((``LE.le, ``Real),           (.const ``Real.le [], .base .rle)),
     ((``LE.le, ``String),        (.const ``String.le [], .base .sle)),
     ((``GE.ge, ``Nat),           (.const ``Nat.ge [], .nge)),
     ((``GE.ge, ``Int),           (.const ``Int.ge [], .ige)),
-    ((``GE.ge, ``Real),           (.const ``Real.ge [], .rge)),
     ((``GE.ge, ``String),        (.const ``String.ge [], .sge)),
     ((``LT.lt, ``Nat),           (.const ``Nat.lt [], .base .nlt)),
     ((``LT.lt, ``Int),           (.const ``Int.lt [], .base .ilt)),
-    ((``LT.lt, ``Real),           (.const ``Real.lt [], .base .rlt)),
     ((``LT.lt, ``String),        (.const ``String.lt [], .base .slt)),
     ((``GT.gt, ``Nat),           (.const ``Nat.gt [], .ngt)),
     ((``GT.gt, ``Int),           (.const ``Int.gt [], .igt)),
-    ((``GT.gt, ``Real),           (.const ``Real.gt [], .rgt)),
     ((``GT.gt, ``String),        (.const ``String.gt [], .sgt)),
     ((``Max.max, ``Nat),         (.const ``Nat.max [], .base .nmax)),
     ((``Max.max, ``Int),         (.const ``Int.max [], .base .imax)),
-    ((``Max.max, ``Real),         (.const ``Real.max [], .base .rmax)),
     ((``Min.min, ``Nat),         (.const ``Nat.min [], .base .nmin)),
     ((``Min.min, ``Int),         (.const ``Int.min [], .base .imin)),
-    ((``Min.min, ``Real),         (.const ``Real.min [], .base .rmin)),
   ]
 
 open LamCstrD in
@@ -1281,16 +1285,12 @@ def reifMapLam0Arg4NoLit : Std.HashMap (Name × Name × Name) (Expr × LamTerm) 
   Std.HashMap.ofList [
     ((``HAdd.hAdd, ``Nat, ``Nat),             (.const ``Nat.add [], .base .nadd)),
     ((``HAdd.hAdd, ``Int, ``Int),             (.const ``Int.add [], .base .iadd)),
-    ((``HAdd.hAdd, ``Real, ``Real),           (.const ``Real.add [], .base .radd)),
     ((``HSub.hSub, ``Nat, ``Nat),             (.const ``Nat.sub [], .base .nsub)),
     ((``HSub.hSub, ``Int, ``Int),             (.const ``Int.sub [], .base .isub)),
-    ((``HSub.hSub, ``Real, ``Real),           (.const ``Real.sub [], .base .rsub)),
     ((``HMul.hMul, ``Nat, ``Nat),             (.const ``Nat.mul [], .base .nmul)),
     ((``HMul.hMul, ``Int, ``Int),             (.const ``Int.mul [], .base .imul)),
-    ((``HMul.hMul, ``Real, ``Real),           (.const ``Real.mul [], .base .rmul)),
     ((``HDiv.hDiv, ``Nat, ``Nat),             (.const ``Nat.div [], .base .ndiv)),
     ((``HDiv.hDiv, ``Int, ``Int),             (.const ``Int.ediv [], .base .iediv)),
-    ((``HDiv.hDiv, ``Real, ``Real),           (.const ``Real.div [], .base .rdiv)),
     ((``HMod.hMod, ``Nat, ``Nat),             (.const ``Nat.mod [], .base .nmod)),
     ((``HMod.hMod, ``Int, ``Int),             (.const ``Int.emod [], .base .iemod)),
     ((``HAppend.hAppend, ``String, ``String), (.const ``String.append [], .base .sapp))
@@ -1362,6 +1362,10 @@ def processLam0Arg2 (e fn arg₁ _arg₂ : Expr) : MetaM (Option LamTerm) := do
     if let .some (e', t) := reifMapLam0Arg2NoLit.get? (fnName, arg₁Name) then
       if (← Meta.isDefEqD e e') then
         return .some t
+    if let .some h ← realReifExt.get then
+      if let .some (e', t) := h.arg2NoLit.lookup (fnName, arg₁Name) then
+        if (← Meta.isDefEqD e e') then
+          return .some t
   if arg₁.isApp then
     let .app arg₁fn arg₁arg := arg₁
       | throwError "{decl_name%} :: Unexpected error"
@@ -1390,10 +1394,6 @@ def processLam0Arg3 (e fn arg₁ arg₂ _arg₃ : Expr) : MetaM (Option LamTerm)
           | throwError "{decl_name%} :: OfNat.ofNat instance is not based on a nat literal"
         return .some (.mkIOfNat (.base (.natVal nv)))
       return .none
-    | .const ``Real _ =>
-      if let .lit (.natVal nv) := arg₂ then
-        return .some (.mkROfNat (.base (.natVal nv)))
-      return .none
     | .app (.const ``BitVec []) nExpr =>
       if let .some n ← Meta.evalNat nExpr then
         if (← Meta.isDefEqD e (mkApp2 (.const ``BitVec.ofNat []) (.lit (.natVal n)) arg₂)) then
@@ -1401,7 +1401,14 @@ def processLam0Arg3 (e fn arg₁ arg₂ _arg₃ : Expr) : MetaM (Option LamTerm)
             | throwError "{decl_name%} :: OfNat.ofNat instance is not based on a nat literal"
           return .some (.base (.bvVal n nv))
       return .none
-    | _ => return .none
+    | _ => do
+      match ← realReifExt.get with
+      | .some h =>
+        if arg₁ == h.realTypeExpr then
+          if let .lit (.natVal nv) := arg₂ then
+            return h.ofNatReal nv
+        return .none
+      | .none => return .none
   | _ => return .none
 
 def processLam0Arg4 (e fn arg₁ arg₂ _arg₃ _arg₄ : Expr) : MetaM (Option LamTerm) := do
@@ -1416,6 +1423,11 @@ def processLam0Arg4 (e fn arg₁ arg₂ _arg₃ _arg₄ : Expr) : MetaM (Option 
       if (← Meta.isDefEqD e e') then
         return .some t
       return .none
+    if let .some h ← realReifExt.get then
+      if let .some (e', t) := h.arg4NoLit.lookup (fnName, arg₁name, arg₂name) then
+        if (← Meta.isDefEqD e e') then
+          return .some t
+        return .none
   if arg₁.isApp && arg₂.isConst then
     let .app arg₁fn arg₁arg := arg₁
       | throwError "{decl_name%} :: Unexpected error"
@@ -1533,9 +1545,7 @@ partial def reifTerm (lctx : Std.HashMap FVarId Nat) : Expr → ReifM LamTerm
                     if let .atom n := fnHead2 then
                       let fnExpr ← lookupVarVal! n
                       if fnExpr.fst.isAppOf ``OfScientific.ofScientific then
-                        match (← Lean.Meta.inferType fn) with
-                        | .forallE _ _ (.const ``Real _) _ => return .base (.sciVal base sgn exp)
-                        | _ => return .base (.sciVal base sgn exp)
+                        return .base (.sciVal base sgn exp)
     return .app lamTy lamFn lamArg
 | .lam name ty body binfo => do
   trace[debug] "case lam {name}, {ty}, {body}"
@@ -1578,10 +1588,13 @@ def reifInhabitations (inhs : Array UMonoFact) : ReifM (Array LamSort) :=
 
 def reifInd (ind : SimpleIndVal) : ReifM (Option IndInfo) := do
   let ⟨name, type, ctors, projs⟩ := ind
-  if name == ``Nat || name == ``Int || name == ``Real ||
-     name == ``Bool || name == ``String || name == ``String.Pos.Raw ||
+  if name == ``Nat || name == ``Int || name == ``Bool ||
+     name == ``String || name == ``String.Pos.Raw ||
      name == ``Empty || name == ``BitVec then
     return .none
+  if let .some h ← realReifExt.get then
+    if h.realTypeName == name then
+      return .none
   -- For now, do not reify inductively defined proposition
   if ← isIndProp name then
     return .none
