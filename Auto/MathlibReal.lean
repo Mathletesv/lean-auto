@@ -27,6 +27,14 @@ abbrev Real.min (x y : Real) : Real := Min.min x y
 def interpRealConstAsUnlifted : RealConst → CoreM Expr
 | .sciVal n sgn exp => return ← (Lean.Meta.mkAppOptM ``OfScientific.ofScientific
   #[some (.const ``Real []), none, some (toExpr n), some (toExpr sgn), some (toExpr exp)]).run'
+| .rzero => (do
+  let ty := Expr.const ``Real []
+  let inst ← Meta.synthInstance (← Meta.mkAppM ``Zero #[ty])
+  return Lean.mkApp2 (.const ``Zero.zero [.zero]) ty inst).run'
+| .rone => (do
+  let ty := Expr.const ``Real []
+  let inst ← Meta.synthInstance (← Meta.mkAppM ``One #[ty])
+  return Lean.mkApp2 (.const ``One.one [.zero]) ty inst).run'
 | .rofNat   => return .const ``Real.ofNat []
 | .rofInt   => return .const ``Real.ofInt []
 | .rneg     => return .const ``Real.neg []
@@ -97,7 +105,6 @@ initialize do
       ((``HMul.hMul, ``Real, ``Real), (.const ``Real.mul [], .base .rmul)),
       ((``HDiv.hDiv, ``Real, ``Real), (.const ``Real.div [], .base .rdiv))
     ]
-    ofNatReal := fun nv => some (.mkROfNat (.base (.natVal nv)))
   })
 
 end Auto.MathlibReal

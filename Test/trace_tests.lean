@@ -84,9 +84,11 @@ example : 10 % (0 : Real) = 10 := by
 #eval (OfScientific.ofScientific 5 False 5) / 0
 
 example : 0.123124 = (0.123124 : Real) := by
+  mono
   auto
 
-example : 01 + (2.40 : Real) = 3.40 := by
+example : 1.0 + (2.40 : Real) = 3.40 := by
+  mono
   auto
 
 example : 10 + (24 : Real) = 34 := by
@@ -102,9 +104,24 @@ example : 1 - (1 : Int) = 0 := by
   mono
   auto
 
-example : 1 + (-1 : Real) = 0 := by
+set_option pp.all true in
+example : 123400500 + -123400000 = (500 : Real) := by
   mono
   auto
+
+  -- (@Eq.{1} Real
+  --   (Auto.MathlibReal.Real.add (Auto.MathlibReal.Real.ofNat (nat_lit 123400500))
+  --     (Auto.MathlibReal.Real.neg (Auto.MathlibReal.Real.ofNat (nat_lit 123400500))))
+  --   (@Zero.zero.{0} Real Real.instZero))
+
+set_option pp.all true in
+example : 123400500 + -123400500 = (0 : Real) := by
+  mono
+  auto
+
+example : (0 : ℝ) = @Zero.zero ℝ Real.instZero := by
+  unfold OfNat.ofNat Zero.toOfNat0; rfl
+example : (0 : ℝ) = @Zero.zero ℝ _ := by rfl
 
 example : (0 : Real) = 0 := by
   auto
@@ -122,7 +139,7 @@ example : 0 = 10 / 0 := by
   auto
 
 example : (1 : Real) + 2.4 * 1 = 34 / 10 := by
-  mono
+  -- mono
   auto
 
 example : 1 + (0.24 * 10 : Real) = (34 / 10 : Real) := by

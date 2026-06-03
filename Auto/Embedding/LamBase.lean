@@ -500,12 +500,14 @@ mkConstFamily IntConst with
 inductive RealConst
   | rneg | rabs | radd | rsub | rmul | rdiv
   | rle | rlt | rmax | rmin
-  | rofNat | rofInt
+  | rofNat | rofInt | rzero | rone
   | sciVal (n : Nat) (sgn : Bool) (exp : Nat)
 deriving Inhabited, Hashable, Lean.ToExpr
 
 mkConstFamily ncInterp RealConst with
   | sciVal (n : Nat) (sgn : Bool) (exp : Nat) | ofSciVal | (.base .real)             | s!"{n}*10^{if sgn then "-" else ""}{exp} : Real" | GLift.up (OfScientific.ofScientific n sgn exp)
+  | rzero    | ofRzero   | (.base .real)                                             | "rzero"    | GLift.up 0
+  | rone     | ofRone    | (.base .real)                                             | "rone"     | GLift.up 1
   | rofNat   | ofROfNat  | (.func (.base .nat) (.base .real))                        | "rofNat"   | rofNatLift
   | rofInt   | ofROfInt  | (.func (.base .int) (.base .real))                        | "rofInt"   | rofIntLift
   | rneg     | ofRneg    | (.func (.base .real) (.base .real))                       | "-"        | rnegLift
@@ -1001,6 +1003,8 @@ def LamBaseTerm.ilt := LamBaseTerm.icst .ilt
 def LamBaseTerm.imax := LamBaseTerm.icst .imax
 def LamBaseTerm.imin := LamBaseTerm.icst .imin
 def LamBaseTerm.sciVal (n : Nat) (sgn : Bool) (exp : Nat) := LamBaseTerm.rcst (.sciVal n sgn exp)
+def LamBaseTerm.rzero := LamBaseTerm.rcst .rzero
+def LamBaseTerm.rone := LamBaseTerm.rcst .rone
 def LamBaseTerm.rofNat := LamBaseTerm.rcst .rofNat
 def LamBaseTerm.rofInt := LamBaseTerm.rcst .rofInt
 def LamBaseTerm.rneg := LamBaseTerm.rcst .rneg
@@ -1350,6 +1354,8 @@ abbrev LamBaseTerm.LamWF.ofIlt {ltv : LamTyVal} := LamWF.ofIcst (ltv:=ltv) .ofIl
 abbrev LamBaseTerm.LamWF.ofImax {ltv : LamTyVal} := LamWF.ofIcst (ltv:=ltv) .ofImax
 abbrev LamBaseTerm.LamWF.ofImin {ltv : LamTyVal} := LamWF.ofIcst (ltv:=ltv) .ofImin
 abbrev LamBaseTerm.LamWF.ofSciVal {ltv : LamTyVal} (n : Nat) (sgn : Bool) (exp : Nat) := LamWF.ofRcst (ltv:=ltv) (.ofSciVal n sgn exp)
+abbrev LamBaseTerm.LamWF.ofRzero {ltv : LamTyVal} := LamWF.ofRcst (ltv:=ltv) .ofRzero
+abbrev LamBaseTerm.LamWF.ofRone {ltv : LamTyVal} := LamWF.ofRcst (ltv:=ltv) .ofRone
 abbrev LamBaseTerm.LamWF.ofROfNat {ltv : LamTyVal} := LamWF.ofRcst (ltv:=ltv) .ofROfNat
 abbrev LamBaseTerm.LamWF.ofROfInt {ltv : LamTyVal} := LamWF.ofRcst (ltv:=ltv) .ofROfInt
 abbrev LamBaseTerm.LamWF.ofRneg {ltv : LamTyVal} := LamWF.ofRcst (ltv:=ltv) .ofRneg

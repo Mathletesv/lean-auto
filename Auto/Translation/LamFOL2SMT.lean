@@ -346,6 +346,8 @@ private def lamBaseTerm2STerm_Arity0 : LamBaseTerm → TransM LamAtomic STerm
 | .pcst .falseE       => return .qStrApp "false" #[]
 | .bcst .trueb        => return .qStrApp "true" #[]
 | .bcst .falseb       => return .qStrApp "false" #[]
+| .rcst .rzero        => return .sConst (.scientific 0 false 0)
+| .rcst .rone         => return .sConst (.scientific 1 false 0)
 | .ncst (.natVal n)   => return .sConst (.num n)
 | .rcst (.sciVal n sgn exp) => return .sConst (.scientific n sgn exp)
 | .scst (.strVal s)   => return .sConst (.str s)

@@ -415,7 +415,6 @@ structure RealReifHandler where
   realTypeExpr : Expr
   arg2NoLit    : List ((Name × Name) × (Expr × LamTerm))
   arg4NoLit    : List ((Name × Name × Name) × (Expr × LamTerm))
-  ofNatReal    : Nat → Option LamTerm
 
 initialize realReifExt : IO.Ref (Option RealReifHandler) ← IO.mkRef none
 
@@ -1087,16 +1086,16 @@ def reifMapConstNilLvl : Std.HashMap Name LamTerm :=
     (``Int.le,            .base .ile),
     (``Int.lt,            .base .ilt),
     (`Int.ModEq,          .imodeq),
-    (`Real.ofNat,         .base .rofNat),
-    (`Real.ofInt,         .base .rofInt),
-    (`Real.neg,           .base .rneg),
-    (`Real.abs,           .base .rabs),
-    (`Real.add,           .base .radd),
-    (`Real.sub,           .base .rsub),
-    (`Real.mul,           .base .rmul),
-    (`Real.div,           .base .rdiv),
-    (`Real.le,             .base .rle),
-    (`Real.lt,             .base .rlt),
+    -- (`Real.ofNat,         .base .rofNat),
+    -- (`Real.ofInt,         .base .rofInt),
+    -- (`Real.neg,           .base .rneg),
+    -- (`Real.abs,           .base .rabs),
+    -- (`Real.add,           .base .radd),
+    -- (`Real.sub,           .base .rsub),
+    -- (`Real.mul,           .base .rmul),
+    -- (`Real.div,           .base .rdiv),
+    -- (`Real.le,             .base .rle),
+    -- (`Real.lt,             .base .rlt),
     (``String.length,     .base .slength),
     (``String.append,     .base .sapp),
     (``String.isPrefixOf, .base .sprefixof),
@@ -1367,6 +1366,10 @@ def processLam0Arg2 (e fn arg₁ _arg₂ : Expr) : MetaM (Option LamTerm) := do
       if let .some (e', t) := h.arg2NoLit.lookup (fnName, arg₁Name) then
         if (← Meta.isDefEqD e e') then
           return .some t
+  if let .some h ← realReifExt.get then
+      if arg₁ == h.realTypeExpr then
+        if fnName == ``Zero.zero then return .some (.base (.rcst .rzero))
+        if fnName == ``One.one  then return .some (.base (.rcst .rone))
   if arg₁.isApp then
     let .app arg₁fn arg₁arg := arg₁
       | throwError "{decl_name%} :: Unexpected error"
@@ -1407,7 +1410,31 @@ def processLam0Arg3 (e fn arg₁ arg₂ _arg₃ : Expr) : MetaM (Option LamTerm)
       | .some h =>
         if arg₁ == h.realTypeExpr then
           if let .lit (.natVal nv) := arg₂ then
-            return h.ofNatReal nv
+            if nv == 0 then
+              return .some (.base .rzero)
+            else if nv == 1 then
+              return .some (.base .rone)
+            else
+              return .some (.mkROfNat (.base (.natVal nv)))
+            -- return .some (.mkROfInt (.mkIOfNat (.base (.natVal nv)))) -- does not work
+            -- let candidate := .app (.const ``Real.ofNat []) arg₂ -- works for abs >= 2
+            -- if (← Meta.isDefEqD e candidate) then
+            --   trace[debug] "accepted {nv}"
+            --   return .some (.mkROfNat (.base (.natVal nv)))
+            -- -- let zeroExpr ← Meta.mkAppOptM ``Zero.zero #[some h.realTypeExpr]
+            -- let zeroTy ← Meta.mkAppM ``Zero #[h.realTypeExpr]
+            -- let zeroInst ← Meta.synthInstance zeroTy
+            -- let zeroExpr := Lean.mkApp2 (.const ``Zero.zero [.zero]) h.realTypeExpr zeroInst
+            -- trace[debug] "zeroExpr: {zeroExpr}, hasMVar: {zeroExpr.hasExprMVar}"
+            -- trace[debug] "tried zero: {e}, {zeroExpr}"
+            -- if (← Lean.Meta.withTransparency .all (Meta.isDefEq e zeroExpr)) then
+            -- -- if (← Meta.isDefEqD e zeroExpr) then
+            --   trace[debug] "found zero {nv}"
+            --   return .some (.base .rzero)
+            -- trace[debug] "rejected {nv}"
+            -- return .some (.mkROfNat (.base (.natVal nv)))
+            -- return h.ofNatReal nv
+            -- return .some (.base .rone)
         return .none
       | .none => return .none
   | _ => return .none
