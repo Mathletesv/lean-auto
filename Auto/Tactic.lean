@@ -437,7 +437,7 @@ def callNative_direct
     return e)
   return mkAppN proof (ss ++ ts)
 
-open Embedding.Lam in
+open Embedding.Lam Auto.Lam2D in
 /--
   If `prover?` is specified, use the specified one.
   Otherwise use the one determined by `Solver.Native.queryNative`
@@ -454,7 +454,9 @@ def queryNative
   LamReif.printProofs
   Reif.setDeclName? declName?
   let checker ← LamReif.buildCheckerExprFor contra
-  Meta.mkAppM ``Embedding.Lam.LamThmValid.getFalse #[checker]
+  let RExpr := if let some h := (← realReconstructionExt.get) then
+    h.baseSort else .const ``Auto.DefaultReal []
+  Meta.mkAppM ``Embedding.Lam.LamThmValid.getFalse #[RExpr, checker]
 
 def rewriteIteCondDecide (lemmas : Array Lemma) : MetaM (Array Lemma) := do
   -- Simplify `ite`

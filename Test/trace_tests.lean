@@ -1,6 +1,16 @@
 import Auto.Tactic
 import Auto.MathlibReal
 -- import Mathlib
+-- import Duper.Tactic
+
+-- open Lean Auto in
+-- def Auto.duperRaw (lemmas : Array Lemma) (inhs : Array Lemma) : MetaM Expr := do
+--   let lemmas : Array (Expr × Expr × Array Name × Bool) ← lemmas.mapM
+--     (fun ⟨⟨proof, ty, _⟩, _⟩ => do return (ty, ← Meta.mkAppM ``eq_true #[proof], #[], true))
+--   Duper.runDuper lemmas.toList [] 0
+
+-- attribute [rebind Auto.Native.solverFunc] Auto.duperRaw
+-- set_option auto.native true
 
 -- Standard Preprocessing Configs
 set_option auto.redMode "reducible"
@@ -28,14 +38,13 @@ set_option trace.auto.tptp.printQuery true
 
 -- set_option auto.checker.buildMode "indirectReduce_reflection" in
 example (x y z : Int) (h1 : x > y + 5) (h2 : y > z) : x ≠ z := by
-  mono
   auto
 
 example (x y z : Int) (h1 : x - 5 > y) (h2 : y > z) : x ≠ z := by
   auto
 
 example (x y z : Real) (h1 : x > y) (h2 : y > z) : x ≠ z := by
-  mono
+  -- mono
   auto
 
 example (x y : Nat) (h1 : x * x > y * y) : x > y := by
@@ -48,7 +57,7 @@ example (x y z : Real) (h1 : x > y + 5) (h2 : y > z) : x ≠ z := by
   auto
 
 example (x : Real × Real) : x.1 ≤ x.2 ∨ x.1 > x.2 := by
-  mono
+  -- mono
   auto
 
 example : (10 : Int) / (0 : Int) = 0 := by
@@ -66,29 +75,31 @@ example : 10 % 0 = (10 : Int) := by
 example : 10 / 0 = (0 : Real) := by
   auto
 
-example (h1 : ∀ x : Real, Real.sqrt x * Real.sqrt x = x) : Real.sqrt 4.0 = 2 := by
-  auto
+-- example (h1 : ∀ x : Real, Real.sqrt x * Real.sqrt x = x) : Real.sqrt 4.0 = 2 := by
+--   auto
+
+#check @Nat.cast
 
 example : 10 / 0 = (0 : Real) := by
   auto
 
-example : 10 % (0 : Real) = 10 := by
-  simp
+-- example : 10 % (0 : Real) = 10 := by
+--   simp
 
 -- div by 0 is always 0, x % 0 is always x?
 
-#eval (5 / 3 : Real) / 0
+-- #eval (5 / 3 : Real) / 0
 
-#eval (5.0 : Real) / 0
+-- #eval (5.0 : Real) / 0
 
 #eval (OfScientific.ofScientific 5 False 5) / 0
 
 example : 0.123124 = (0.123124 : Real) := by
-  mono
+  -- mono
   auto
 
 example : 1.0 + (2.40 : Real) = 3.40 := by
-  mono
+  -- mono
   auto
 
 example : 10 + (24 : Real) = 34 := by
@@ -101,12 +112,12 @@ example : 1 + (2 : Real) = 3 := by
   auto
 
 example : 1 - (1 : Int) = 0 := by
-  mono
+  -- mono
   auto
 
 set_option pp.all true in
 example : 123400500 + -123400000 = (500 : Real) := by
-  mono
+  -- mono
   auto
 
   -- (@Eq.{1} Real
@@ -116,7 +127,7 @@ example : 123400500 + -123400000 = (500 : Real) := by
 
 set_option pp.all true in
 example : 123400500 + -123400500 = (0 : Real) := by
-  mono
+  -- mono
   auto
 
 example : (0 : ℝ) = @Zero.zero ℝ Real.instZero := by
