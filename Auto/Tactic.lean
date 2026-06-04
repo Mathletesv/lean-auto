@@ -452,7 +452,7 @@ def queryNative
   Reif.setDeclName? declName?
   let checker ← LamReif.buildCheckerExprFor contra
   let RExpr := if let some h := (← realReconstructionExt.get) then
-    h.baseSort else .const ``Auto.DefaultReal []
+    h.baseSort else .const ``Auto.UnitReal []
   Meta.mkAppM ``Embedding.Lam.LamThmValid.getFalse #[RExpr, checker]
 
 def rewriteIteCondDecide (lemmas : Array Lemma) : MetaM (Array Lemma) := do
@@ -540,7 +540,7 @@ def evalAuto : Tactic
       absurd.assign proof
 | _ => throwUnsupportedSyntax
 
-open Auto.LamReif Auto.Lam2D Auto.DefaultReal in
+open Auto.LamReif Auto.Lam2D Auto.UnitReal in
 /--
   Run `auto`'s preprocessing and monomorphization to abstract the
   problem into an essentially higher-order problem
@@ -600,7 +600,7 @@ where
     Reif.setDeclName? declName?
     let checker ← LamReif.buildCheckerExprFor contra
     let RExpr := if let some h := (← realReconstructionExt.get) then
-      h.baseSort else .const ``Auto.DefaultReal []
+      h.baseSort else .const ``Auto.UnitReal []
     let contra ← Meta.mkAppM ``Embedding.Lam.LamThmValid.getFalse #[RExpr, checker]
     let (goalFVars, goalId) ← goalId.introN (atomVals.size + etoms.size)
     let (goalCtx, goalId) ← goalId.introN (exportInhs.size + exportFacts.size)

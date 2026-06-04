@@ -1750,7 +1750,7 @@ section BuildChecker
     let importedFacts := Lean.toExpr importedFactsTree
     return (importTableExpr, importedFacts)
 
-  open Auto.Lam2D Auto.DefaultReal in
+  open Auto.Lam2D Auto.UnitReal in
   /--
     `re` is the entry we want to retrieve from the `validTable`
     The `expr` returned is a proof of the `LamThmValid`-ness of the entry
@@ -1758,7 +1758,7 @@ section BuildChecker
   def buildFullCheckerExprFor_directReduce (re : REntry) : ReifM Expr := do
     printCheckerStats
     let RExpr := if let some h := (← realReconstructionExt.get) then
-      h.baseSort else .const ``Auto.DefaultReal []
+      h.baseSort else .const ``Auto.UnitReal []
     let startTime ← IO.monoMsNow
     let u ← getU
     let cpvExpr ← buildCPValExpr RExpr
@@ -1778,7 +1778,7 @@ section BuildChecker
       return getEntry
     return checker
 
-  open Auto.Lam2D Auto.DefaultReal in
+  open Auto.Lam2D Auto.UnitReal in
   /--
     `re` is the entry we want to retrieve from the `validTable`
     The `expr` returned is a proof of the `LamThmValid`-ness of the entry
@@ -1786,7 +1786,7 @@ section BuildChecker
   def buildFullCheckerExprFor_indirectReduce (re : REntry) : ReifM Expr := do
     printCheckerStats
     let RExpr := if let some h := (← realReconstructionExt.get) then
-      h.baseSort else .const ``Auto.DefaultReal []
+      h.baseSort else .const ``Auto.UnitReal []
     let startTime ← IO.monoMsNow
     let u ← getU
     let lvtExpr := Lean.toExpr (BinTree.ofListGet ((← getVarVal).map Prod.snd).toList)
@@ -1839,11 +1839,11 @@ section BuildChecker
       (Lean.toExpr (← getLamEVarTyTree))
     mkNativeAuxDecl `lam_ssrefl_rr (Lean.mkConst ``RTable) runResultExpr
 
-  open Auto.Lam2D Auto.DefaultReal in
+  open Auto.Lam2D Auto.UnitReal in
   def buildFullCheckerExprFor_indirectReduce_reflection (re : REntry) : ReifM Expr := do
     printCheckerStats
     let RExpr := if let some h := (← realReconstructionExt.get) then
-      h.baseSort else .const ``Auto.DefaultReal []
+      h.baseSort else .const ``Auto.UnitReal []
     let startTime ← IO.monoMsNow
     let u ← getU
     let lvtExpr := Lean.toExpr (BinTree.ofListGet ((← getVarVal).map Prod.snd).toList)
