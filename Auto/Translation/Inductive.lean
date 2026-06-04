@@ -102,23 +102,19 @@ private def collectSimpleInduct
       let .some projFn := getProjFnForField? env tyctor fieldName
         | throwError "{decl_name%} :: Unexpected error"
       return mkAppN (Expr.const projFn lvls) args))
-  trace[debug] "tyctor: {tyctor}, args: {args}, ctors: {ctors}, projs: {projs}"
   return ⟨tyctor, mkAppN (Expr.const tyctor lvls) args, ctors, projs⟩
 
 mutual
 
   private partial def collectAppInstSimpleInduct (e : Expr) : IndCollectM Unit := do
-    trace[debug] "collectAppInstSimpleInduct of e: {e}"
     let .const tyctor lvls := e.getAppFn
       | return
     let .some (.inductInfo val) := (← getEnv).find? tyctor
       | return
-    trace[debug] "tyctor: {tyctor}, lvls: {lvls}, val: {val.all}"
     if !(← @id (CoreM _) (val.all.allM isSimpleInductive)) then
       trace[auto.collectInd] (m!"Warning : {tyctor} or some type within the " ++
         "same mutual block is not a simple inductive type. Ignoring it ...")
       return
-    trace[debug] "got here"
     /-
       Do not translate typeclasses as inductive types
       Mathlib has a complex typeclass hierarchy, so translating typeclasses might make a mess
@@ -138,7 +134,6 @@ mutual
         return
     for tyctor' in val.all do
       setRecorded ((← getRecorded).insert tyctor' (arr.push (mkAppN (.const tyctor' lvls) args)))
-    trace[debug] "args: {args}, val.all: {val.all}, arr: {arr}"
     let mutualInductVal ← val.all.mapM (collectSimpleInduct · lvls args)
     for inductval in mutualInductVal do
       for (_, type) in inductval.ctors do
@@ -164,9 +159,7 @@ mutual
 end
 
 def collectExprsSimpleInduct (es : Array Expr) : MetaM (Array (Array SimpleIndVal)) := do
-  trace[debug] "es: {es}"
   let (_, st) ← (es.mapM collectExprSimpleInduct).run {}
-  trace[debug] "st.sis: {st.sis}"
   return st.sis
 
 end Auto

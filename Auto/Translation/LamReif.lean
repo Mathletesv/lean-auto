@@ -979,7 +979,6 @@ def newTermExprAux (e : Expr) (sort : LamSort) : ReifM LamTerm := do
   setVarVal (varVal.push (e, sort))
   setVarMap (varMap.insert e idx)
   let _ ← nonemptyOfAtom idx
-  trace[debug] "making new expr: {e}, {varVal}, {idx}, {sort}"
   return .atom idx
 
 def newTypeExpr (e : Expr) : ReifM LamSort := do
@@ -1177,7 +1176,6 @@ def processSimpleApp (fn arg : Expr) : ReifM (Option LamTerm) := do
   let fn := fn.getAppFn
   let .const name lvls := fn
     | return .none
-  trace[debug] "process app more: {args} {fn} {name} {lvls}"
   match args.toList with
   | [] => throwError "{decl_name%} :: Unexpected error"
   | [arg] =>
@@ -1382,7 +1380,6 @@ def processLam0Arg2 (e fn arg₁ _arg₂ : Expr) : MetaM (Option LamTerm) := do
   return .none
 
 def processLam0Arg3 (e fn arg₁ arg₂ _arg₃ : Expr) : MetaM (Option LamTerm) := do
-  trace[debug] "happened : {e} {fn} {arg₁} {arg₂} {_arg₃}"
   match fn with
   | .const ``OfNat.ofNat _ =>
     match arg₁ with
@@ -1409,6 +1406,7 @@ def processLam0Arg3 (e fn arg₁ arg₂ _arg₃ : Expr) : MetaM (Option LamTerm)
       match ← realReifExt.get with
       | .some h =>
         if arg₁ == h.realTypeExpr then
+          -- **TODO**: Add DefEq checks before these conversions
           if let .lit (.natVal nv) := arg₂ then
             if nv == 0 then
               return .some (.base .rzero)
@@ -1416,25 +1414,6 @@ def processLam0Arg3 (e fn arg₁ arg₂ _arg₃ : Expr) : MetaM (Option LamTerm)
               return .some (.base .rone)
             else
               return .some (.mkROfNat (.base (.natVal nv)))
-            -- return .some (.mkROfInt (.mkIOfNat (.base (.natVal nv)))) -- does not work
-            -- let candidate := .app (.const ``Real.ofNat []) arg₂ -- works for abs >= 2
-            -- if (← Meta.isDefEqD e candidate) then
-            --   trace[debug] "accepted {nv}"
-            --   return .some (.mkROfNat (.base (.natVal nv)))
-            -- -- let zeroExpr ← Meta.mkAppOptM ``Zero.zero #[some h.realTypeExpr]
-            -- let zeroTy ← Meta.mkAppM ``Zero #[h.realTypeExpr]
-            -- let zeroInst ← Meta.synthInstance zeroTy
-            -- let zeroExpr := Lean.mkApp2 (.const ``Zero.zero [.zero]) h.realTypeExpr zeroInst
-            -- trace[debug] "zeroExpr: {zeroExpr}, hasMVar: {zeroExpr.hasExprMVar}"
-            -- trace[debug] "tried zero: {e}, {zeroExpr}"
-            -- if (← Lean.Meta.withTransparency .all (Meta.isDefEq e zeroExpr)) then
-            -- -- if (← Meta.isDefEqD e zeroExpr) then
-            --   trace[debug] "found zero {nv}"
-            --   return .some (.base .rzero)
-            -- trace[debug] "rejected {nv}"
-            -- return .some (.mkROfNat (.base (.natVal nv)))
-            -- return h.ofNatReal nv
-            -- return .some (.base .rone)
         return .none
       | .none => return .none
   | _ => return .none
@@ -1497,7 +1476,6 @@ def processComplexTermExpr (e : Expr) : MetaM (Option LamTerm) := do
   | 0 =>
     let fn := e.getAppFn
     let args := e.getAppArgs
-    trace[debug] "processComplexTermExpr: {e}, {lams}, {fn}, {args}"
     match args.toList with
     | [] => return .none
     | [_] => return .none
@@ -1509,24 +1487,20 @@ def processComplexTermExpr (e : Expr) : MetaM (Option LamTerm) := do
   | _ => return .none
 
 def processNewTermExpr (e : Expr) : ReifM LamTerm := do
-  trace[debug] "not atomized: {e}"
   let e := e.eta
   match e with
   | .lit l => return processSimpleLit l
   | .const name lvls => do
-    trace[debug] "process const {name}, {lvls}"
     match ← processSimpleConst name lvls with
     | .some t => return t
     | .none => processOther e
   | .app fn arg => do
-    trace[debug] "process app {fn}, {arg}, {e}"
     match ← processSimpleApp fn arg with
     | .some t => return t
     | .none => processOther e
   | e => processOther e
 where
   processOther (e : Expr) := do
-    trace[debug] "otherProcess {e}"
     if let .some res ← processComplexTermExpr e then
       return res
     newTermExpr e
@@ -1534,14 +1508,11 @@ where
 def processTermExpr (lctx : Std.HashMap FVarId Nat) (e : Expr) : ReifM LamTerm := do
   if let .fvar fid := e then
     if let .some n := deBruijn? lctx fid then
-      trace[debug] "found: {n}, bvar: {Auto.Embedding.Lam.LamTerm.bvar n}"
       return .bvar n
   let e ← Reif.resolveVal e
   let varMap ← getVarMap
-  trace[debug] "new e: {e}, type: {← Lean.Meta.inferType e}"
   -- If the expression has already been processed
   if let .some id := varMap.get? e then
-    trace[debug] "check atomization: {Auto.Embedding.Lam.LamTerm.atom id}"
     return .atom id
   -- If the expression has not been processed
   processNewTermExpr e
@@ -1553,44 +1524,35 @@ where
 
 partial def reifTerm (lctx : Std.HashMap FVarId Nat) : Expr → ReifM LamTerm
 | .app fn arg => do
-  trace[debug] "case app {fn}, {← Lean.Meta.inferType fn}, {arg}"
   match fn with
   | _ =>
     let lamFn ← reifTerm lctx fn
     let lamArg ← reifTerm lctx arg
     let argTy ← Meta.inferType arg
     let lamTy ← reifType argTy
-    -- Make this nicer, don't need double checks
-    if lamTy == LamSort.base LamBaseSort.nat then
-      if let LamTerm.base (LamBaseTerm.ncst (NatConst.natVal exp)) := lamArg then
-        if let .app argType fnHead fnArg := lamFn then
-          if argType == LamSort.base LamBaseSort.bool then
-            if let LamTerm.base (LamBaseTerm.bcst bval) := fnArg then
-              let sgn := bval == BoolConst.trueb
-              if let .app argType2 fnHead2 fnArg2 := fnHead then
-                if argType2 == LamSort.base LamBaseSort.nat then
-                  if let LamTerm.base (LamBaseTerm.ncst (NatConst.natVal base)) := fnArg2 then
-                    if let .atom n := fnHead2 then
-                      let fnExpr ← lookupVarVal! n
-                      if fnExpr.fst.isAppOf ``OfScientific.ofScientific then
-                        return .base (.sciVal base sgn exp)
+    if let LamTerm.base (LamBaseTerm.ncst (NatConst.natVal exp)) := lamArg then
+      if let .app _ fnHead fnArg := lamFn then
+        if let LamTerm.base (LamBaseTerm.bcst bval) := fnArg then
+          let sgn := bval == BoolConst.trueb
+          if let .app _ fnHead2 fnArg2 := fnHead then
+            if let LamTerm.base (LamBaseTerm.ncst (NatConst.natVal base)) := fnArg2 then
+              if let .atom n := fnHead2 then
+                let fnExpr ← lookupVarVal! n
+                if fnExpr.fst.isAppOf ``OfScientific.ofScientific then
+                  return .base (.sciVal base sgn exp)
     return .app lamTy lamFn lamArg
 | .lam name ty body binfo => do
-  trace[debug] "case lam {name}, {ty}, {body}"
   let lamTy ← reifType ty
   let body ← Meta.withLocalDecl name binfo ty fun fvar => do
     let body' := body.instantiate1 fvar
     reifTerm (lctx.insert fvar.fvarId! lctx.size) body'
-  trace[debug] "lam {name} into {lamTy}, {body}"
   return .lam lamTy body
 | e => do
-  trace[debug] "case e: {e}, type: {← Lean.Meta.inferType e}"
   processTermExpr lctx e
 
 def reifTermCheckType (e : Expr) : ReifM (LamSort × LamTerm) := do
   let t ← reifTerm .emptyWithCapacity e
   let ltv ← getLamTyValAtMeta
-  trace[debug] "reifTermCheckType e: {e}, type: {← Lean.Meta.inferType e}, t: {t}"
   let .some s := t.lamCheck? ltv Embedding.Lam.dfLCtxTy
     | throwError "{decl_name%} :: LamTerm {t} is not type correct"
   return (s, t)
@@ -1598,11 +1560,9 @@ def reifTermCheckType (e : Expr) : ReifM (LamSort × LamTerm) := do
 /-- Return the positions of the reified and `resolveImport`-ed facts within the `validTable` -/
 def reifFacts (facts : Array UMonoFact) : ReifM (Array LamTerm) :=
   facts.mapM (fun ⟨proof, ty, deriv⟩ => do
-    trace[debug] "proof: {proof}, ty: {ty}, deriv: {deriv}"
     let (s, lamty) ← reifTermCheckType ty
     if s != .base .prop then
       throwError "{decl_name%} :: Fact {lamty} is not of type `prop`"
-    trace[debug] "s: {s}, lamty: {lamty}"
     trace[auto.lamReif.printResult] "Successfully reified proof of {← Meta.zetaReduce ty} to λterm `{lamty}`"
     newAssertion proof deriv lamty
     return lamty)
@@ -1758,36 +1718,6 @@ section BuildChecker
     return lamValuationExpr
 
   /-- `lvalExpr` is the `LamValuation` -/
-  -- def buildImportTableExpr (chkValExpr : Expr) : ReifM (Expr × Expr) := do
-  --   -- let startTime ← IO.monoMsNow
-  --   let u ← getU
-  --   let mut importTable : BinTree Expr := BinTree.leaf
-  --   let mut importedFactsTree : BinTree REntry := BinTree.leaf
-  --   for (t, (e, _, ti, n)) in (← getAssertions).toList do
-  --     let tExpr := Lean.toExpr ti
-  --     let ieExpr := Expr.app (.const ``ImportEntry.valid []) tExpr
-  --     let itEntry := Lean.mkApp3 (.const ``importTablePSigmaMk [u]) chkValExpr ieExpr e
-  --     importTable := importTable.insert n itEntry
-  --     if t.maxLooseBVarSucc != 0 || t.maxEVarSucc != 0 then
-  --       throwError "{decl_name%} :: Invalid imported fact {t}"
-  --     let veEntry := REntry.valid [] t
-  --     importedFactsTree := importedFactsTree.insert n veEntry
-  --   for (s, (inh, _, n)) in (← getInhabitations).toList do
-  --     let sExpr := Lean.toExpr s
-  --     let ieExpr := Expr.app (.const ``ImportEntry.nonempty []) sExpr
-  --     let (upFunc, _, _, sil) ← updownFunc s
-  --     let inhLift := Lean.mkApp2 (.const ``Nonempty.intro [.succ u]) sil (.app upFunc inh)
-  --     let itEntry := Lean.mkApp3 (.const ``importTablePSigmaMk [u]) chkValExpr ieExpr inhLift
-  --     importTable := importTable.insert n itEntry
-  --     let vEntry := REntry.nonempty s
-  --     importedFactsTree := importedFactsTree.insert n vEntry
-  --   let type := Lean.mkApp2 (.const ``PSigma [.succ .zero, .zero])
-  --     (.const ``ImportEntry []) (.app (.const ``importTablePSigmaβ [u]) chkValExpr)
-  --   let importTableExpr := (@instToExprBinTreeOfToLevel Expr
-  --     (instExprToExprId type) ⟨.zero, Prop⟩).toExpr importTable
-  --   let importedFacts := Lean.toExpr importedFactsTree
-  --   return (importTableExpr, importedFacts)
-
   def buildImportTableExpr (RExpr : Expr) (chkValExpr : Expr) : ReifM (Expr × Expr) := do
     let u ← getU
     let mut importTable : BinTree Expr := BinTree.leaf
@@ -1950,7 +1880,6 @@ section BuildChecker
 
   def buildFullCheckerExprFor (re : REntry) : ReifM Expr := do
     let buildMode := auto.checker.buildMode.get (← getOptions)
-    trace[debug] "buildMode: {buildMode}"
     match buildMode with
     | .directReduce => buildFullCheckerExprFor_directReduce re
     | .indirectReduce => buildFullCheckerExprFor_indirectReduce re

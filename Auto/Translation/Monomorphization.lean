@@ -802,7 +802,6 @@ def collectMonoMutInds : MonoM (Array (Array SimpleIndVal)) := do
     let ty ← Meta.inferType cie
     return Expr.eraseMData ty)
   let minds ← collectExprsSimpleInduct citys
-  trace[debug] "minds: {minds}"
   let cis ← (minds.flatMap id).mapM (fun ⟨_, type, ctors, projs⟩ => do
     let cis₁ ← collectConstInsts #[] #[] type
     let cis₂ ← ctors.mapM (fun (val, ty) => do
@@ -1054,11 +1053,9 @@ where
   monoMAction : MonoM (LemmaInsts × Array (Array SimpleIndVal)) := do
     let startTime ← IO.monoMsNow
     initializeMonoM lemmas
-    trace[debug] "lemmas: {lemmas}"
     saturate
     let monoLemmas ← getAllMonoLemmaInsts
     let monoIndVals ← collectMonoMutInds
-    trace[debug] "monoLemmas: {monoLemmas}, monoIndVals: {monoIndVals}"
     trace[auto.mono] "Monomorphization of lemmas took {(← IO.monoMsNow) - startTime}ms"
     return (monoLemmas, monoIndVals)
   /-- Process lemmas and inductive types, collect inhabited types -/
@@ -1066,7 +1063,6 @@ where
     (monoLemmas : LemmaInsts)
     (monoIndVals : Array (Array SimpleIndVal))
     (monoSt : State) : MetaState.MetaStateM (Array FVarId × Reif.State) := do
-    trace[debug] "monoLemmas: {monoLemmas}, monoIndVals: {monoIndVals}"
     let (uvalids, s) ← (fvarRepMFactAction monoLemmas).run { ciMap := monoSt.ciMap }
     for ⟨proof, ty, _⟩ in uvalids do
       trace[auto.mono.printResult] "Monomorphized :: {proof} : {ty}"
@@ -1091,7 +1087,6 @@ where
     return (s.ffvars, Reif.State.mk uvalids polyVal s.tyCanMap inhs monoIndVals none)
   fvarRepMFactAction (lis : Array LemmaInst) : FVarRep.FVarRepM (Array UMonoFact) := lis.filterMapM (fun li => do
     trace[auto.mono.fvarRepFact] "{li.type}"
-    trace[debug] "lis: {lis}"
     let liTypeRep? ← FVarRep.replacePolyWithFVar li.type
     match liTypeRep? with
     | .inl liTypeRep => return .some ⟨li.proof, liTypeRep, li.deriv⟩
@@ -1102,7 +1097,6 @@ where
       else
         throwError m)
   fvarRepMInductAction (ivals : Array (Array SimpleIndVal)) : FVarRep.FVarRepM (Array (Array SimpleIndVal)) := do
-    trace[debug] "ivals: {ivals}"
     ivals.mapM (fun svals => svals.mapM (fun ⟨name, type, ctors, projs⟩ => do
       let (type, _) ← FVarRep.processType type
       let ctors ← ctors.mapM (fun (val, ty) => do

@@ -293,12 +293,9 @@ def querySMT (exportFacts : Array REntry) (exportInds : Array MutualIndInfo) : L
     match re with
     | .valid [] t => return t
     | _ => throwError "{decl_name%} :: Unexpected error")
-  trace[debug] "exportFacts: {exportFacts}, exportInds: {exportInds}"
-  trace[debug] "lamVarTy: {lamVarTy}, lamEVarTy: {lamEVarTy}"
   let sni : SMT.SMTNamingInfo :=
     {tyVal := (← LamReif.getTyVal), varVal := (← LamReif.getVarVal), lamEVarTy := (← LamReif.getLamEVarTy)}
   let ((commands, validFacts), state) ← (lamFOL2SMT sni lamVarTy lamEVarTy exportLamTerms exportInds).run
-  trace[debug] "commands: {commands}, validFacts: {validFacts}"
   for cmd in commands do
     trace[auto.smt.printCommands] "{cmd}"
   if (auto.smt.save.get (← getOptions)) then
@@ -478,11 +475,9 @@ def runAuto
   Meta.withDefault do
     traceLemmas `auto.runAuto.printLemmas s!"All lemmas received by {decl_name%}:" lemmas
     let lemmas ← rewriteIteCondDecide lemmas
-    trace[debug] "lemmas: {lemmas}, inhFacts: {inhFacts}"
     let (proof, _) ← Monomorphization.monomorphize lemmas inhFacts (@id (Reif.ReifM Expr) do
       let s ← get
       let u ← computeMaxLevel s.facts
-      trace[debug] "u: {u}"
       (reifMAction s.facts s.inhTys s.inds).run' {u := u})
     trace[auto.tactic] "Auto found proof of {← Meta.inferType proof}"
     trace[auto.tactic.printProof] "{proof}"
@@ -491,16 +486,12 @@ where
   reifMAction
     (uvalids : Array UMonoFact) (uinhs : Array UMonoFact)
     (minds : Array (Array SimpleIndVal)) : LamReif.ReifM Expr := do
-    let lamVarTy := (← LamReif.getVarVal).map Prod.snd
-    let lamEVarTy ← LamReif.getLamEVarTy
-    trace[debug] "one lamVarTy: {lamVarTy}, lamEVarTy: {lamEVarTy}"
     let exportFacts ← LamReif.reifFacts uvalids
     let mut exportFacts := exportFacts.map (Embedding.Lam.REntry.valid [])
     let _ ← LamReif.reifInhabitations uinhs
     let exportInhs := (← LamReif.getRst).nonemptyMap.toArray.map
       (fun (s, _) => Embedding.Lam.REntry.nonempty s)
     let exportInds ← LamReif.reifMutInds minds
-    trace[debug] "exportFacts: {exportFacts}, exportInds: {exportInds}"
     LamReif.printValuation
     -- **Preprocessing in Verified Checker**
     let (exportFacts', exportInds) ← LamReif.preprocess exportFacts exportInds
