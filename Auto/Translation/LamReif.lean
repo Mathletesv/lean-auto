@@ -415,6 +415,9 @@ structure RealReifHandler where
   realTypeExpr : Expr
   arg2NoLit    : List ((Name × Name) × (Expr × LamTerm))
   arg4NoLit    : List ((Name × Name × Name) × (Expr × LamTerm))
+  ofNatConst   : Expr
+  zeroConst    : Expr
+  oneConst     : Expr
 
 initialize realReifExt : IO.Ref (Option RealReifHandler) ← IO.mkRef none
 
@@ -1397,14 +1400,22 @@ def processLam0Arg3 (e fn arg₁ arg₂ _arg₃ : Expr) : MetaM (Option LamTerm)
       match ← realReifExt.get with
       | .some h =>
         if arg₁ == h.realTypeExpr then
-          -- **TODO**: Add DefEq checks before these conversions
           if let .lit (.natVal nv) := arg₂ then
             if nv == 0 then
-              return .some (.base .rzero)
+              if (← Meta.isDefEqD e h.zeroConst) then
+                return .some (.base .rzero)
+              else
+                return .none
             else if nv == 1 then
-              return .some (.base .rone)
+              if (← Meta.isDefEqD e h.oneConst) then
+                return .some (.base .rone)
+              else
+                return .none
             else
-              return .some (.mkROfNat (.base (.natVal nv)))
+              if (← Meta.isDefEqD e (.app h.ofNatConst arg₂)) then
+                return .some (.mkROfNat (.base (.natVal nv)))
+              else
+                return .none
         return .none
       | .none => return .none
   | _ => return .none

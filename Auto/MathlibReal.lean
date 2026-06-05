@@ -105,6 +105,9 @@ initialize do
       ((``HMul.hMul, ``Real, ``Real), (.const ``Real.mul [], .base .rmul)),
       ((``HDiv.hDiv, ``Real, ``Real), (.const ``Real.div [], .base .rdiv))
     ]
+    ofNatConst := .const ``Real.ofNat []
+    zeroConst  := mkApp2 (.const ``Zero.zero [.zero]) (.const ``Real []) (.const ``Real.instZero [])
+    oneConst   := mkApp2 (.const ``One.one   [.zero]) (.const ``Real []) (.const ``Real.instOne [])
   })
 
 end Auto.MathlibReal
