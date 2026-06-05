@@ -1151,7 +1151,6 @@ def processSimpleConst (name : Name) (lvls : List Level) : ReifM (Option LamTerm
   if let .some t := reifMapConstNilLvl.get? name then
     if lvls.length != 0 then
       throwError "{decl_name%} :: ConstNilLvl constants should have nil level list"
-    trace[debug] "this is actually useful: {name}, {t}"
     return t
   if name == ``Embedding.ImpF then
     let [u, v] := lvls
