@@ -1227,6 +1227,7 @@ def reifMapLam0Arg2NoLit : Std.HashMap (Name × Name) (Expr × LamTerm) :=
   Std.HashMap.ofList [
     ((``NatCast.natCast, ``Int), (.const ``Int.ofNat [], .base .iofNat)),
     ((``Neg.neg, ``Int),         (.const ``Int.neg [], .base .ineg)),
+    /- **TODO**: Abs.abs does not exist and this conversion never runs -/
     ((`Abs.abs, ``Int),          (.const ``Int.abs [], .base .iabs)),
     ((``LE.le, ``Nat),           (.const ``Nat.le [], .base .nle)),
     ((``LE.le, ``Int),           (.const ``Int.le [], .base .ile)),
@@ -1684,9 +1685,8 @@ section BuildChecker
     let varValPair := (← getVarVal).toList
     let vars ← varValPair.mapM (fun (e, s) => do
       let sExpr := toExpr s
-      Meta.mkAppOptM ``varSigmaMk
-        #[some RExpr, some tyValExpr, some sExpr, some (← varValInterp e s)])
-    let interpExpr ← Meta.mkAppOptM ``LamSort.interp #[some RExpr, some tyValExpr]
+      return Lean.mkApp4 (.const ``varSigmaMk [u]) RExpr tyValExpr sExpr (← varValInterp e s))
+    let interpExpr := Lean.mkApp2 (.const ``LamSort.interp [u]) RExpr tyValExpr
     return exprListToBinTree vars u (Lean.mkApp2
       (.const ``Sigma [.zero, u]) lamSortExpr interpExpr)
 
@@ -1699,9 +1699,8 @@ section BuildChecker
     let ils ← lamILTy.mapM (fun s => do
       let sExpr := toExpr s
       let ilVal ← mkImportingILLift s
-      Meta.mkAppOptM ``ilSigmaMk
-        #[some RExpr, some tyValExpr, some sExpr, some ilVal])
-    let ilβExpr ← Meta.mkAppOptM ``ilβ #[some RExpr, some tyValExpr]
+      return Lean.mkApp4 (.const ``ilSigmaMk [u]) RExpr tyValExpr sExpr ilVal)
+    let ilβExpr := Lean.mkApp2 (.const ``ilβ [u]) RExpr tyValExpr
     return exprListToBinTree ils u (Lean.mkApp2
       (.const ``Sigma [.zero, u]) lamSortExpr ilβExpr)
 
@@ -1712,8 +1711,7 @@ section BuildChecker
     let lamValuationExpr ← Meta.withLetDecl `tyVal tyValTy tyValExpr fun tyValFVarExpr => do
       let varExpr ← buildVarExpr RExpr tyValFVarExpr
       let ilExpr ← buildILExpr RExpr tyValFVarExpr
-      let checkerValuationExpr ← Meta.mkAppOptM ``CPVal.mk
-        #[some RExpr, some tyValExpr, some varExpr, some ilExpr]
+      let checkerValuationExpr := Lean.mkApp4 (.const ``CPVal.mk [u]) RExpr tyValExpr varExpr ilExpr
       Meta.mkLetFVars #[tyValFVarExpr] checkerValuationExpr
     return lamValuationExpr
 
@@ -1725,8 +1723,8 @@ section BuildChecker
     for (t, (e, _, ti, n)) in (← getAssertions).toList do
       let tExpr := Lean.toExpr ti
       let ieExpr := Expr.app (.const ``ImportEntry.valid []) tExpr
-      let itEntry ← Meta.mkAppOptM ``importTablePSigmaMk
-        #[some RExpr, none, some chkValExpr, some ieExpr, some e]
+      let inst ← Meta.synthInstance (← Meta.mkAppM ``RealTy #[RExpr])
+      let itEntry := Lean.mkApp5 (.const ``importTablePSigmaMk [u]) RExpr inst chkValExpr ieExpr e
       importTable := importTable.insert n itEntry
       if t.maxLooseBVarSucc != 0 || t.maxEVarSucc != 0 then
         throwError "{decl_name%} :: Invalid imported fact {t}"
@@ -1737,12 +1735,13 @@ section BuildChecker
       let ieExpr := Expr.app (.const ``ImportEntry.nonempty []) sExpr
       let (upFunc, _, _, sil) ← updownFunc s
       let inhLift := Lean.mkApp2 (.const ``Nonempty.intro [.succ u]) sil (.app upFunc inh)
-      let itEntry ← Meta.mkAppOptM ``importTablePSigmaMk
-        #[some RExpr, none, some chkValExpr, some ieExpr, some inhLift]
+      let inst ← Meta.synthInstance (← Meta.mkAppM ``RealTy #[RExpr])
+      let itEntry := Lean.mkApp5 (.const ``importTablePSigmaMk [u]) RExpr inst chkValExpr ieExpr inhLift
       importTable := importTable.insert n itEntry
       let vEntry := REntry.nonempty s
       importedFactsTree := importedFactsTree.insert n vEntry
-    let psigmaβ ← Meta.mkAppOptM ``importTablePSigmaβ #[some RExpr, none, some chkValExpr]
+    let inst ← Meta.synthInstance (← Meta.mkAppM ``RealTy #[RExpr])
+    let psigmaβ := Lean.mkApp3 (.const ``importTablePSigmaβ [u]) RExpr inst chkValExpr
     let type := Lean.mkApp2 (.const ``PSigma [.succ .zero, .zero])
       (.const ``ImportEntry []) psigmaβ
     let importTableExpr := (@instToExprBinTreeOfToLevel Expr
@@ -1770,9 +1769,9 @@ section BuildChecker
         | throwError "{decl_name%} :: {re} is not a `valid` entry"
       let vExpr := Lean.toExpr (← lookupREntryPos! re)
       let eqExpr ← Meta.mkAppM ``Eq.refl #[← Meta.mkAppM ``Option.some #[Lean.toExpr (lctx, t)]]
-      let getEntry ← Meta.mkAppOptM ``Checker.getValidExport_directReduce
-        #[some RExpr, none, some (Lean.toExpr lctx), some (Lean.toExpr t),
-          some cpvFVarExpr, some itExpr, some csExpr, some vExpr, some eqExpr]
+      let inst ← Meta.synthInstance (← Meta.mkAppM ``RealTy #[RExpr])
+      let getEntry := Lean.mkApp9 (.const ``Checker.getValidExport_directReduce [u]) RExpr inst
+        (Lean.toExpr lctx) (Lean.toExpr t) cpvFVarExpr itExpr csExpr vExpr eqExpr
       let getEntry ← Meta.mkLetFVars #[cpvFVarExpr] getEntry
       trace[auto.buildChecker] "Checker expression built in time {(← IO.monoMsNow) - startTime}ms"
       return getEntry
@@ -1803,10 +1802,10 @@ section BuildChecker
       let hLvtExpr ← Meta.mkAppM ``Eq.refl #[lvtExpr]
       let hLitExpr ← Meta.mkAppM ``Eq.refl #[litExpr]
       let heqExpr ← Meta.mkAppM ``Eq.refl #[← Meta.mkAppM ``Option.some #[Lean.toExpr (lctx, t)]]
-      let getEntry ← Meta.mkAppOptM ``Checker.getValidExport_indirectReduce
-        #[some RExpr, none, some cpvFVarExpr, some itExpr, some csExpr, some vExpr,
-          some ifExpr, some hImportExpr, some lvtExpr, some litExpr, some hLvtExpr,
-          some hLitExpr, some (Lean.toExpr lctx), some (Lean.toExpr t), some heqExpr]
+      let inst ← Meta.synthInstance (← Meta.mkAppM ``RealTy #[RExpr])
+      let getEntry := Lean.mkAppN (.const ``Checker.getValidExport_indirectReduce [u])
+        #[RExpr, inst, cpvFVarExpr, itExpr, csExpr, vExpr, ifExpr, hImportExpr,
+          lvtExpr, litExpr, hLvtExpr, hLitExpr, Lean.toExpr lctx, Lean.toExpr t, heqExpr]
       let getEntry ← Meta.mkLetFVars #[cpvFVarExpr] getEntry
       trace[auto.buildChecker] "Checker expression built in time {(← IO.monoMsNow) - startTime}ms"
       return getEntry
@@ -1869,10 +1868,10 @@ section BuildChecker
       let heqNativeName ← mkNativeAuxDecl `lam_ssrefl_hEq (Lean.mkConst ``Bool) heqBoolExpr
       let heqRflPrf ← Meta.mkEqRefl (toExpr true)
       let heqExpr := mkApp3 (Lean.mkConst ``Lean.ofReduceBool) (Lean.mkConst heqNativeName) (toExpr true) heqRflPrf
-      let getEntry ← Meta.mkAppOptM ``Checker.getValidExport_indirectReduce_reflection
-        #[some RExpr, none, some cpvFVarExpr, some itExpr, some csExpr, some vExpr,
-          some ifExpr, some hImportExpr, some lvtExpr, some litExpr, some hLvtExpr,
-          some hLitExpr, some (Lean.toExpr lctx), some (Lean.toExpr t), some (heqExpr)]
+      let inst ← Meta.synthInstance (← Meta.mkAppM ``RealTy #[RExpr])
+      let getEntry := Lean.mkAppN (.const ``Checker.getValidExport_indirectReduce_reflection [u])
+        #[RExpr, inst, cpvFVarExpr, itExpr, csExpr, vExpr, ifExpr, hImportExpr,
+          lvtExpr, litExpr, hLvtExpr, hLitExpr, Lean.toExpr lctx, Lean.toExpr t, heqExpr]
       let getEntry ← Meta.mkLetFVars #[cpvFVarExpr] getEntry
       trace[auto.buildChecker] "Checker expression built in time {(← IO.monoMsNow) - startTime}ms"
       return getEntry

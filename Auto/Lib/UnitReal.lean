@@ -6,7 +6,7 @@ def UnitReal : Type := Unit
 
 namespace UnitReal
 
-@[reducible] def elem : UnitReal := (() : Unit)
+def elem : UnitReal := (() : Unit)
 
 end UnitReal
 
@@ -22,14 +22,12 @@ instance : Div  UnitReal := ⟨fun _ _ => UnitReal.elem⟩
 instance : Inv  UnitReal := ⟨fun _   => UnitReal.elem⟩
 instance : Max  UnitReal := ⟨fun _ _ => UnitReal.elem⟩
 instance : Min  UnitReal := ⟨fun _ _ => UnitReal.elem⟩
+instance : LE UnitReal := ⟨fun _ _ => True⟩
+instance : LT UnitReal := ⟨fun _ _ => True⟩
 
 instance : NatCast UnitReal := ⟨fun _ => UnitReal.elem⟩
 instance : IntCast UnitReal := ⟨fun _ => UnitReal.elem⟩
-
 instance : OfScientific UnitReal := ⟨fun _ _ _ => UnitReal.elem⟩
-
-instance : LE UnitReal := ⟨fun _ _ => True⟩
-instance : LT UnitReal := ⟨fun _ _ => True⟩
 
 instance : RealTy UnitReal := {}
 
