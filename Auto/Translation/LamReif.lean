@@ -1085,16 +1085,6 @@ def reifMapConstNilLvl : Std.HashMap Name LamTerm :=
     (``Int.le,            .base .ile),
     (``Int.lt,            .base .ilt),
     (`Int.ModEq,          .imodeq),
-    -- (`Real.ofNat,         .base .rofNat),
-    -- (`Real.ofInt,         .base .rofInt),
-    -- (`Real.neg,           .base .rneg),
-    -- (`Real.abs,           .base .rabs),
-    -- (`Real.add,           .base .radd),
-    -- (`Real.sub,           .base .rsub),
-    -- (`Real.mul,           .base .rmul),
-    -- (`Real.div,           .base .rdiv),
-    -- (`Real.le,             .base .rle),
-    -- (`Real.lt,             .base .rlt),
     (``String.length,     .base .slength),
     (``String.append,     .base .sapp),
     (``String.isPrefixOf, .base .sprefixof),
@@ -1161,6 +1151,7 @@ def processSimpleConst (name : Name) (lvls : List Level) : ReifM (Option LamTerm
   if let .some t := reifMapConstNilLvl.get? name then
     if lvls.length != 0 then
       throwError "{decl_name%} :: ConstNilLvl constants should have nil level list"
+    trace[debug] "this is actually useful: {name}, {t}"
     return t
   if name == ``Embedding.ImpF then
     let [u, v] := lvls
@@ -1244,7 +1235,7 @@ def reifMapLam0Arg2NoLit : Std.HashMap (Name × Name) (Expr × LamTerm) :=
     ((``Max.max, ``Nat),         (.const ``Nat.max [], .base .nmax)),
     ((``Max.max, ``Int),         (.const ``Int.max [], .base .imax)),
     ((``Min.min, ``Nat),         (.const ``Nat.min [], .base .nmin)),
-    ((``Min.min, ``Int),         (.const ``Int.min [], .base .imin)),
+    ((``Min.min, ``Int),         (.const ``Int.min [], .base .imin))
   ]
 
 open LamCstrD in
