@@ -1358,10 +1358,6 @@ def processLam0Arg2 (e fn arg₁ _arg₂ : Expr) : MetaM (Option LamTerm) := do
       if let .some (e', t) := h.arg2NoLit.lookup (fnName, arg₁Name) then
         if (← Meta.isDefEqD e e') then
           return .some t
-  if let .some h ← realReifExt.get then
-      if arg₁ == h.realTypeExpr then
-        if fnName == ``Zero.zero then return .some (.base (.rcst .rzero))
-        if fnName == ``One.one  then return .some (.base (.rcst .rone))
   if arg₁.isApp then
     let .app arg₁fn arg₁arg := arg₁
       | throwError "{decl_name%} :: Unexpected error"
