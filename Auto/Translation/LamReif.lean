@@ -1522,23 +1522,21 @@ where
 
 partial def reifTerm (lctx : Std.HashMap FVarId Nat) : Expr → ReifM LamTerm
 | .app fn arg => do
-  match fn with
-  | _ =>
-    let lamFn ← reifTerm lctx fn
-    let lamArg ← reifTerm lctx arg
-    let argTy ← Meta.inferType arg
-    let lamTy ← reifType argTy
-    if let LamTerm.base (LamBaseTerm.ncst (NatConst.natVal exp)) := lamArg then
-      if let .app _ fnHead fnArg := lamFn then
-        if let LamTerm.base (LamBaseTerm.bcst bval) := fnArg then
-          let sgn := bval == BoolConst.trueb
-          if let .app _ fnHead2 fnArg2 := fnHead then
-            if let LamTerm.base (LamBaseTerm.ncst (NatConst.natVal base)) := fnArg2 then
-              if let .atom n := fnHead2 then
-                let fnExpr ← lookupVarVal! n
-                if fnExpr.fst.isAppOf ``OfScientific.ofScientific then
-                  return .base (.sciVal base sgn exp)
-    return .app lamTy lamFn lamArg
+  let lamFn ← reifTerm lctx fn
+  let lamArg ← reifTerm lctx arg
+  let argTy ← Meta.inferType arg
+  let lamTy ← reifType argTy
+  if let LamTerm.base (LamBaseTerm.ncst (NatConst.natVal exp)) := lamArg then
+    if let .app _ fnHead fnArg := lamFn then
+      if let LamTerm.base (LamBaseTerm.bcst bval) := fnArg then
+        let sgn := bval == BoolConst.trueb
+        if let .app _ fnHead2 fnArg2 := fnHead then
+          if let LamTerm.base (LamBaseTerm.ncst (NatConst.natVal base)) := fnArg2 then
+            if let .atom n := fnHead2 then
+              let fnExpr ← lookupVarVal! n
+              if fnExpr.fst.isAppOf ``OfScientific.ofScientific then
+                return .base (.sciVal base sgn exp)
+  return .app lamTy lamFn lamArg
 | .lam name ty body binfo => do
   let lamTy ← reifType ty
   let body ← Meta.withLocalDecl name binfo ty fun fvar => do
