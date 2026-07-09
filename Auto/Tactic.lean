@@ -451,9 +451,8 @@ def queryNative
   LamReif.printProofs
   Reif.setDeclName? declName?
   let checker ← LamReif.buildCheckerExprFor contra
-  let RExpr := if let some h := (← realReconstructionExt.get) then
-    h.baseSort else .const ``Auto.UnitReal []
-  Meta.mkAppM ``Embedding.Lam.LamThmValid.getFalse #[RExpr, checker]
+  let R?Expr ← getRealOpt
+  Meta.mkAppM ``Embedding.Lam.LamThmValid.getFalse #[R?Expr, checker]
 
 def rewriteIteCondDecide (lemmas : Array Lemma) : MetaM (Array Lemma) := do
   -- Simplify `ite`
@@ -599,9 +598,8 @@ where
     LamReif.printProofs
     Reif.setDeclName? declName?
     let checker ← LamReif.buildCheckerExprFor contra
-    let RExpr := if let some h := (← realReconstructionExt.get) then
-      h.baseSort else .const ``Auto.UnitReal []
-    let contra ← Meta.mkAppM ``Embedding.Lam.LamThmValid.getFalse #[RExpr, checker]
+    let R?Expr ← getRealOpt
+    let contra ← Meta.mkAppM ``Embedding.Lam.LamThmValid.getFalse #[R?Expr, checker]
     let (goalFVars, goalId) ← goalId.introN (atomVals.size + etoms.size)
     let (goalCtx, goalId) ← goalId.introN (exportInhs.size + exportFacts.size)
     let goalCtxWithDeriv := goalCtx.zip ((nonemptyWithDTrs ++ validWithDTrs).map Prod.snd)

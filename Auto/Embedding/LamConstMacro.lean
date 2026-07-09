@@ -313,26 +313,26 @@ private def emitInterp (c : ConstFamilyCtx) (noncomp : Bool) : CommandElabM Unit
   if noncomp then
     elabCommand <| ← `(
       set_option linter.unusedVariables false in
-      noncomputable def $interpId (R : Type) [RealTy R] (tyVal : Nat → Type $uId:ident) :
-          (x : $tyName:ident) → ($lamCheckId x).interp R tyVal
+      noncomputable def $interpId (R? : Option ((R : Type) × RealTy R)) (tyVal : Nat → Type $uId:ident) :
+          (x : $tyName:ident) → ($lamCheckId x).interp R? tyVal
         $[| $patterns:term => $lifts:term]*)
     elabCommand <| ← `(
       set_option linter.unusedVariables false in
-      noncomputable def $lamWFInterpId (R : Type) [RealTy R] (tyVal : Nat → Type $uId:ident)
+      noncomputable def $lamWFInterpId (R? : Option ((R : Type) × RealTy R)) (tyVal : Nat → Type $uId:ident)
           {x : $tyName:ident} {s : $lamSortId} :
-          (lwf : $lamWFId x s) → s.interp R tyVal
+          (lwf : $lamWFId x s) → s.interp R? tyVal
         $[| $wfPatterns:term => $lifts:term]*)
   else
     elabCommand <| ← `(
       set_option linter.unusedVariables false in
-      def $interpId (R : Type) [RealTy R] (tyVal : Nat → Type $uId:ident) :
-          (x : $tyName:ident) → ($lamCheckId x).interp R tyVal
+      def $interpId (R? : Option ((R : Type) × RealTy R)) (tyVal : Nat → Type $uId:ident) :
+          (x : $tyName:ident) → ($lamCheckId x).interp R? tyVal
         $[| $patterns:term => $lifts:term]*)
     elabCommand <| ← `(
       set_option linter.unusedVariables false in
-      def $lamWFInterpId (R : Type) [RealTy R] (tyVal : Nat → Type $uId:ident)
+      def $lamWFInterpId (R? : Option ((R : Type) × RealTy R)) (tyVal : Nat → Type $uId:ident)
           {x : $tyName:ident} {s : $lamSortId} :
-          (lwf : $lamWFId x s) → s.interp R tyVal
+          (lwf : $lamWFId x s) → s.interp R? tyVal
         $[| $wfPatterns:term => $lifts:term]*)
 
 private def emitInterpLemmas (c : ConstFamilyCtx) : CommandElabM Unit := do
@@ -340,18 +340,18 @@ private def emitInterpLemmas (c : ConstFamilyCtx) : CommandElabM Unit := do
         interpId, lamWFUniqueId, uId, .. } := c
   elabCommand <| ← `(
     theorem $lvalIrrId
-        (R : Type) [RealTy R]
+        (R? : Option ((R : Type) × RealTy R))
         (tyVal₁ tyVal₂ : Nat → Type $uId:ident)
         {x₁ x₂ : $tyName:ident} {s₁ s₂ : $lamSortId}
         (w₁ : $lamWFId x₁ s₁) (w₂ : $lamWFId x₂ s₂)
         (Hxy : x₁ = x₂) (hTyVal : tyVal₁ = tyVal₂) :
-        HEq ($lamWFInterpId R tyVal₁ w₁) ($lamWFInterpId R tyVal₂ w₂) := by
+        HEq ($lamWFInterpId R? tyVal₁ w₁) ($lamWFInterpId R? tyVal₂ w₂) := by
       cases Hxy; cases hTyVal
       rcases $lamWFUniqueId w₁ w₂ with ⟨⟨⟩, ⟨⟩⟩; rfl)
   elabCommand <| ← `(
-    def $interpEquivId (R : Type) [RealTy R] (tyVal : Nat → Type $uId:ident) {x : $tyName:ident} {s : $lamSortId}
+    def $interpEquivId (R? : Option ((R : Type) × RealTy R)) (tyVal : Nat → Type $uId:ident) {x : $tyName:ident} {s : $lamSortId}
         (w : $lamWFId x s) :
-        HEq ($lamWFInterpId R tyVal w) ($interpId R tyVal x) := by
+        HEq ($lamWFInterpId R? tyVal w) ($interpId R? tyVal x) := by
       cases w <;> rfl)
 
 elab_rules : command

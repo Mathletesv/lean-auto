@@ -285,15 +285,15 @@ namespace BVLems
 
 end BVLems
 
-variable (R : Type) [RealTy R]
+variable (R? : Option ((R : Type) × RealTy R))
 
 theorem LamEquiv.bvofNat :
-  LamEquiv R lval lctx (.base (.bv n)) (.mkBvofNat n (.mkNatVal i)) (.base (.bvVal n i)) :=
+  LamEquiv R? lval lctx (.base (.bv n)) (.mkBvofNat n (.mkNatVal i)) (.base (.bvVal n i)) :=
   ⟨.mkBvofNat (.ofBase (.ofNatVal i)), .ofBase (.ofBvVal n i), fun _ => rfl⟩
 
 theorem LamEquiv.bvofNat_bvtoNat
   (wft : LamWF lval.toLamTyVal ⟨lctx, t, .base (.bv n)⟩) :
-  LamEquiv R lval lctx (.base (.bv m))
+  LamEquiv R? lval lctx (.base (.bv m))
     (.mkBvofNat m (.mkBvUOp n (.bvtoNat n) t))
     (.app (.base (.bv n)) (.base (.bvzeroExtend n m)) t) :=
   ⟨.mkBvofNat (.mkBvUOp (.ofBvtoNat n) wft),
@@ -303,7 +303,7 @@ theorem LamEquiv.bvofNat_bvtoNat
 theorem LamEquiv.bvofNat_nadd
   (wfa : LamWF lval.toLamTyVal ⟨lctx, a, .base .nat⟩)
   (wfb : LamWF lval.toLamTyVal ⟨lctx, b, .base .nat⟩) :
-  LamEquiv R lval lctx (.base (.bv n))
+  LamEquiv R? lval lctx (.base (.bv n))
     (.mkBvofNat n (.mkNatBinOp .nadd a b))
     (.mkBvBinOp n (.bvadd n) (.mkBvofNat n a) (.mkBvofNat n b)) :=
   ⟨.mkBvofNat (.mkNatBinOp .ofNadd wfa wfb),
@@ -317,7 +317,7 @@ def LamTerm.bvofNat_nsub (n : Nat) (a b bva bvb : LamTerm) :=
 theorem LamEquiv.bvofNat_nsub
   (wfa : LamWF lval.toLamTyVal ⟨lctx, a, .base .nat⟩)
   (wfb : LamWF lval.toLamTyVal ⟨lctx, b, .base .nat⟩) :
-  LamEquiv R lval lctx (.base (.bv n))
+  LamEquiv R? lval lctx (.base (.bv n))
     (.mkBvofNat n (.mkNatBinOp .nsub a b))
     (.bvofNat_nsub n a b (.mkBvofNat n a) (.mkBvofNat n b)) :=
   ⟨.mkBvofNat (.mkNatBinOp .ofNsub wfa wfb),
@@ -328,7 +328,7 @@ theorem LamEquiv.bvofNat_nsub
 theorem LamEquiv.bvofNat_nmul
   (wfa : LamWF lval.toLamTyVal ⟨lctx, a, .base .nat⟩)
   (wfb : LamWF lval.toLamTyVal ⟨lctx, b, .base .nat⟩) :
-  LamEquiv R lval lctx (.base (.bv n))
+  LamEquiv R? lval lctx (.base (.bv n))
     (.mkBvofNat n (.mkNatBinOp .nmul a b))
     (.mkBvBinOp n (.bvmul n) (.mkBvofNat n a) (.mkBvofNat n b)) :=
   ⟨.mkBvofNat (.mkNatBinOp .ofNmul wfa wfb),
@@ -347,10 +347,10 @@ theorem LamTerm.congr_maxEVarSucc_shl_equiv
   dsimp [shl_equiv, mkIte, mkNatBinOp, mkBvBinOp, maxEVarSucc]; rw [eqa, eqb, eqbbv]
 
 theorem LamEquiv.congr_shl_equiv
-  (eqa : LamEquiv R lval lctx (.base (.bv n)) a₁ a₂)
-  (eqb : LamEquiv R lval lctx (.base .nat) b₁ b₂)
-  (eqbbv : LamEquiv R lval lctx (.base (.bv n)) bbv₁ bbv₂) :
-  LamEquiv R lval lctx (.base (.bv n)) (.shl_equiv n a₁ b₁ bbv₁) (.shl_equiv n a₂ b₂ bbv₂) :=
+  (eqa : LamEquiv R? lval lctx (.base (.bv n)) a₁ a₂)
+  (eqb : LamEquiv R? lval lctx (.base .nat) b₁ b₂)
+  (eqbbv : LamEquiv R? lval lctx (.base (.bv n)) bbv₁ bbv₂) :
+  LamEquiv R? lval lctx (.base (.bv n)) (.shl_equiv n a₁ b₁ bbv₁) (.shl_equiv n a₂ b₂ bbv₂) :=
   congrFun _ (congr _ (congrArg _ (.ofBase (.ofIte _))
     (congrFun _ (congrArg _ (.ofBase .ofNlt) eqb)
       (.ofBase (.ofNatVal _)))) (congr _ (congrArg _ (.ofBase (.ofBvsmtshl _)) eqa) eqbbv))
@@ -359,7 +359,7 @@ theorem LamEquiv.congr_shl_equiv
 theorem LamEquiv.shl_equiv
   (wfa : LamWF lval.toLamTyVal ⟨lctx, a, .base (.bv n)⟩)
   (wfb : LamWF lval.toLamTyVal ⟨lctx, b, .base .nat⟩) :
-  LamEquiv R lval lctx (.base (.bv n))
+  LamEquiv R? lval lctx (.base (.bv n))
     (.mkBvNatBinOp n (.bvshl n) a b)
     (.shl_equiv n a b (.mkBvofNat n b)) :=
   ⟨.mkBvNatBinOp (.ofBvshl _) wfa wfb,
@@ -377,16 +377,16 @@ theorem LamTerm.congr_maxEVarSucc_shl_toNat_equiv_short
   dsimp [shl_toNat_equiv_short, mkBvBinOp, mkBvUOp, maxEVarSucc]; rw [eqa, eqb]
 
 theorem LamEquiv.congr_shl_toNat_equiv_short
-  (eqa : LamEquiv R lval lctx (.base (.bv n)) a₁ a₂)
-  (eqb : LamEquiv R lval lctx (.base (.bv m)) b₁ b₂) :
-  LamEquiv R lval lctx (.base (.bv n)) (.shl_toNat_equiv_short n a₁ m b₁) (.shl_toNat_equiv_short n a₂ m b₂) :=
+  (eqa : LamEquiv R? lval lctx (.base (.bv n)) a₁ a₂)
+  (eqb : LamEquiv R? lval lctx (.base (.bv m)) b₁ b₂) :
+  LamEquiv R? lval lctx (.base (.bv n)) (.shl_toNat_equiv_short n a₁ m b₁) (.shl_toNat_equiv_short n a₂ m b₂) :=
   congr _ (congrArg _ (.ofBase (.ofBvsmtshl _)) eqa) (congrArg _ (.ofBase (.ofBvzeroExtend _ _)) eqb)
 
 theorem LamEquiv.shl_toNat_equiv_short
   (wfa : LamWF lval.toLamTyVal ⟨lctx, a, .base (.bv n)⟩)
   (wfb : LamWF lval.toLamTyVal ⟨lctx, b, .base (.bv m)⟩)
   (h : m ≤ n) :
-  LamEquiv R lval lctx (.base (.bv n))
+  LamEquiv R? lval lctx (.base (.bv n))
     (.mkBvNatBinOp n (.bvshl n) a (.mkBvUOp m (.bvtoNat m) b))
     (.shl_toNat_equiv_short n a m b) :=
   ⟨.mkBvNatBinOp (.ofBvshl _) wfa (.mkBvUOp (.ofBvtoNat _) wfb),
@@ -405,9 +405,9 @@ theorem LamTerm.congr_maxEVarSucc_shl_toNat_equiv_long
   dsimp [shl_toNat_equiv_long, mkIte, mkEq, mkBvBinOp, mkBvUOp, maxEVarSucc]; rw [eqa, eqb]
 
 theorem LamEquiv.congr_shl_toNat_equiv_long
-  (eqa : LamEquiv R lval lctx (.base (.bv n)) a₁ a₂)
-  (eqb : LamEquiv R lval lctx (.base (.bv m)) b₁ b₂) :
-  LamEquiv R lval lctx (.base (.bv n)) (.shl_toNat_equiv_long n a₁ m b₁) (.shl_toNat_equiv_long n a₂ m b₂) :=
+  (eqa : LamEquiv R? lval lctx (.base (.bv n)) a₁ a₂)
+  (eqb : LamEquiv R? lval lctx (.base (.bv m)) b₁ b₂) :
+  LamEquiv R? lval lctx (.base (.bv n)) (.shl_toNat_equiv_long n a₁ m b₁) (.shl_toNat_equiv_long n a₂ m b₂) :=
   congrFun _ (congr _ (congrArg _ (.ofBase (.ofIte _))
     (congrFun _ (congrArg _ (.ofBase (.ofEq _)) (congrFun _
       (congrArg _ (.ofBase (.ofBvsmtlshr _)) eqb) (.ofBase (.ofBvVal _ _))))
@@ -419,7 +419,7 @@ theorem LamEquiv.shl_toNat_equiv_long
   (wfa : LamWF lval.toLamTyVal ⟨lctx, a, .base (.bv n)⟩)
   (wfb : LamWF lval.toLamTyVal ⟨lctx, b, .base (.bv m)⟩)
   (h : m > n) :
-  LamEquiv R lval lctx (.base (.bv n))
+  LamEquiv R? lval lctx (.base (.bv n))
     (.mkBvNatBinOp n (.bvshl n) a (.mkBvUOp m (.bvtoNat m) b))
     (.shl_toNat_equiv_long n a m b) :=
   ⟨.mkBvNatBinOp (.ofBvshl _) wfa (.mkBvUOp (.ofBvtoNat _) wfb),
@@ -440,10 +440,10 @@ theorem LamTerm.congr_maxEVarSucc_lshr_equiv
   dsimp [lshr_equiv, mkIte, mkNatBinOp, mkBvBinOp, maxEVarSucc]; rw [eqa, eqb, eqbbv]
 
 theorem LamEquiv.congr_lshr_equiv
-  (eqa : LamEquiv R lval lctx (.base (.bv n)) a₁ a₂)
-  (eqb : LamEquiv R lval lctx (.base .nat) b₁ b₂)
-  (eqbbv : LamEquiv R lval lctx (.base (.bv n)) bbv₁ bbv₂) :
-  LamEquiv R lval lctx (.base (.bv n)) (.lshr_equiv n a₁ b₁ bbv₁) (.lshr_equiv n a₂ b₂ bbv₂) :=
+  (eqa : LamEquiv R? lval lctx (.base (.bv n)) a₁ a₂)
+  (eqb : LamEquiv R? lval lctx (.base .nat) b₁ b₂)
+  (eqbbv : LamEquiv R? lval lctx (.base (.bv n)) bbv₁ bbv₂) :
+  LamEquiv R? lval lctx (.base (.bv n)) (.lshr_equiv n a₁ b₁ bbv₁) (.lshr_equiv n a₂ b₂ bbv₂) :=
   congrFun _ (congr _ (congrArg _ (.ofBase (.ofIte _)) (congrFun _ (congrArg _ (.ofBase .ofNlt) eqb)
     (.ofBase (.ofNatVal _)))) (congr _ (congrArg _ (.ofBase (.ofBvsmtlshr _)) eqa) eqbbv))
     (.ofBase (.ofBvVal _ _))
@@ -451,7 +451,7 @@ theorem LamEquiv.congr_lshr_equiv
 theorem LamEquiv.lshr_equiv
   (wfa : LamWF lval.toLamTyVal ⟨lctx, a, .base (.bv n)⟩)
   (wfb : LamWF lval.toLamTyVal ⟨lctx, b, .base .nat⟩) :
-  LamEquiv R lval lctx (.base (.bv n))
+  LamEquiv R? lval lctx (.base (.bv n))
     (.mkBvNatBinOp n (.bvlshr n) a b)
     (.lshr_equiv n a b (.mkBvofNat n b)) :=
   ⟨.mkBvNatBinOp (.ofBvlshr _) wfa wfb,
@@ -469,16 +469,16 @@ theorem LamTerm.congr_maxEVarSucc_lshr_toNat_equiv_short
   dsimp [lshr_toNat_equiv_short, mkBvBinOp, mkBvUOp, maxEVarSucc]; rw [eqa, eqb]
 
 theorem LamEquiv.congr_lshr_toNat_equiv_short
-  (eqa : LamEquiv R lval lctx (.base (.bv n)) a₁ a₂)
-  (eqb : LamEquiv R lval lctx (.base (.bv m)) b₁ b₂) :
-  LamEquiv R lval lctx (.base (.bv n)) (.lshr_toNat_equiv_short n a₁ m b₁) (.lshr_toNat_equiv_short n a₂ m b₂) :=
+  (eqa : LamEquiv R? lval lctx (.base (.bv n)) a₁ a₂)
+  (eqb : LamEquiv R? lval lctx (.base (.bv m)) b₁ b₂) :
+  LamEquiv R? lval lctx (.base (.bv n)) (.lshr_toNat_equiv_short n a₁ m b₁) (.lshr_toNat_equiv_short n a₂ m b₂) :=
   congr _ (congrArg _ (.ofBase (.ofBvsmtlshr _)) eqa) (congrArg _ (.ofBase (.ofBvzeroExtend _ _)) eqb)
 
 theorem LamEquiv.lshr_toNat_equiv_short
   (wfa : LamWF lval.toLamTyVal ⟨lctx, a, .base (.bv n)⟩)
   (wfb : LamWF lval.toLamTyVal ⟨lctx, b, .base (.bv m)⟩)
   (h : m ≤ n) :
-  LamEquiv R lval lctx (.base (.bv n))
+  LamEquiv R? lval lctx (.base (.bv n))
     (.mkBvNatBinOp n (.bvlshr n) a (.mkBvUOp m (.bvtoNat m) b))
     (.lshr_toNat_equiv_short n a m b) :=
   ⟨.mkBvNatBinOp (.ofBvlshr _) wfa (.mkBvUOp (.ofBvtoNat _) wfb),
@@ -497,9 +497,9 @@ theorem LamTerm.congr_maxEVarSucc_lshr_toNat_equiv_long
   dsimp [lshr_toNat_equiv_long, mkIte, mkEq, mkBvBinOp, mkBvUOp, maxEVarSucc]; rw [eqa, eqb]
 
 theorem LamEquiv.congr_lshr_toNat_equiv_long
-  (eqa : LamEquiv R lval lctx (.base (.bv n)) a₁ a₂)
-  (eqb : LamEquiv R lval lctx (.base (.bv m)) b₁ b₂) :
-  LamEquiv R lval lctx (.base (.bv n)) (.lshr_toNat_equiv_long n a₁ m b₁) (.lshr_toNat_equiv_long n a₂ m b₂) :=
+  (eqa : LamEquiv R? lval lctx (.base (.bv n)) a₁ a₂)
+  (eqb : LamEquiv R? lval lctx (.base (.bv m)) b₁ b₂) :
+  LamEquiv R? lval lctx (.base (.bv n)) (.lshr_toNat_equiv_long n a₁ m b₁) (.lshr_toNat_equiv_long n a₂ m b₂) :=
   congrFun _ (congr _ (congrArg _ (.ofBase (.ofIte _))
     (congrFun _ (congrArg _ (.ofBase (.ofEq _)) (congrFun _
       (congrArg _ (.ofBase (.ofBvsmtlshr _)) eqb)
@@ -511,7 +511,7 @@ theorem LamEquiv.lshr_toNat_equiv_long
   (wfa : LamWF lval.toLamTyVal ⟨lctx, a, .base (.bv n)⟩)
   (wfb : LamWF lval.toLamTyVal ⟨lctx, b, .base (.bv m)⟩)
   (h : m > n) :
-  LamEquiv R lval lctx (.base (.bv n))
+  LamEquiv R? lval lctx (.base (.bv n))
     (.mkBvNatBinOp n (.bvlshr n) a (.mkBvUOp m (.bvtoNat m) b))
     (.lshr_toNat_equiv_long n a m b) :=
   ⟨.mkBvNatBinOp (.ofBvlshr _) wfa (.mkBvUOp (.ofBvtoNat _) wfb),
@@ -534,10 +534,10 @@ theorem LamTerm.congr_maxEVarSucc_ashr_equiv
   dsimp [ashr_equiv, mkIte, mkEq, mkNatBinOp, mkBvUOp, mkBvBinOp, maxEVarSucc]; rw [eqa, eqb, eqbbv]
 
 theorem LamEquiv.congr_ashr_equiv
-  (eqa : LamEquiv R lval lctx (.base (.bv n)) a₁ a₂)
-  (eqb : LamEquiv R lval lctx (.base .nat) b₁ b₂)
-  (eqbbv : LamEquiv R lval lctx (.base (.bv n)) bbv₁ bbv₂) :
-  LamEquiv R lval lctx (.base (.bv n)) (.ashr_equiv n a₁ b₁ bbv₁) (.ashr_equiv n a₂ b₂ bbv₂) :=
+  (eqa : LamEquiv R? lval lctx (.base (.bv n)) a₁ a₂)
+  (eqb : LamEquiv R? lval lctx (.base .nat) b₁ b₂)
+  (eqbbv : LamEquiv R? lval lctx (.base (.bv n)) bbv₁ bbv₂) :
+  LamEquiv R? lval lctx (.base (.bv n)) (.ashr_equiv n a₁ b₁ bbv₁) (.ashr_equiv n a₂ b₂ bbv₂) :=
   congr _ (congr _ (congrArg _ (.ofBase (.ofIte _)) (congrFun _ (congrArg _ (.ofBase .ofNlt) eqb) (.ofBase (.ofNatVal _))))
     (congr _ (congrArg _ (.ofBase (.ofBvsmtashr _)) eqa) eqbbv))
     (congrFun _ (congrFun _ (congrArg _ (.ofBase (.ofIte _)) (congrFun _
@@ -548,7 +548,7 @@ theorem LamEquiv.congr_ashr_equiv
 theorem LamEquiv.ashr_equiv
   (wfa : LamWF lval.toLamTyVal ⟨lctx, a, .base (.bv n)⟩)
   (wfb : LamWF lval.toLamTyVal ⟨lctx, b, .base .nat⟩) :
-  LamEquiv R lval lctx (.base (.bv n))
+  LamEquiv R? lval lctx (.base (.bv n))
     (.mkBvNatBinOp n (.bvashr n) a b)
     (.ashr_equiv n a b (.mkBvofNat n b)) :=
   ⟨.mkBvNatBinOp (.ofBvashr _) wfa wfb,
@@ -569,16 +569,16 @@ theorem LamTerm.congr_maxEVarSucc_ashr_toNat_equiv_short
   dsimp [ashr_toNat_equiv_short, mkBvUOp, mkBvBinOp, maxEVarSucc]; rw [eqa, eqb]
 
 theorem LamEquiv.congr_ashr_toNat_equiv_short
-  (eqa : LamEquiv R lval lctx (.base (.bv n)) a₁ a₂)
-  (eqb : LamEquiv R lval lctx (.base (.bv m)) b₁ b₂) :
-  LamEquiv R lval lctx (.base (.bv n)) (.ashr_toNat_equiv_short n a₁ m b₁) (.ashr_toNat_equiv_short n a₂ m b₂) :=
+  (eqa : LamEquiv R? lval lctx (.base (.bv n)) a₁ a₂)
+  (eqb : LamEquiv R? lval lctx (.base (.bv m)) b₁ b₂) :
+  LamEquiv R? lval lctx (.base (.bv n)) (.ashr_toNat_equiv_short n a₁ m b₁) (.ashr_toNat_equiv_short n a₂ m b₂) :=
   congr _ (congrArg _ (.ofBase (.ofBvsmtashr _)) eqa) (congrArg _ (.ofBase (.ofBvzeroExtend _ _)) eqb)
 
 theorem LamEquiv.ashr_toNat_equiv_short
   (wfa : LamWF lval.toLamTyVal ⟨lctx, a, .base (.bv n)⟩)
   (wfb : LamWF lval.toLamTyVal ⟨lctx, b, .base (.bv m)⟩)
   (h : m ≤ n) :
-  LamEquiv R lval lctx (.base (.bv n))
+  LamEquiv R? lval lctx (.base (.bv n))
     (.mkBvNatBinOp n (.bvashr n) a (.mkBvUOp m (.bvtoNat m) b))
     (.ashr_toNat_equiv_short n a m b) :=
   ⟨.mkBvNatBinOp (.ofBvashr _) wfa (.mkBvUOp (.ofBvtoNat _) wfb),
@@ -600,9 +600,9 @@ theorem LamTerm.congr_maxEVarSucc_ashr_toNat_equiv_long
   dsimp [ashr_toNat_equiv_long, mkIte, mkEq, mkBvUOp, mkBvBinOp, maxEVarSucc]; rw [eqa, eqb]
 
 theorem LamEquiv.congr_ashr_toNat_equiv_long
-  (eqa : LamEquiv R lval lctx (.base (.bv n)) a₁ a₂)
-  (eqb : LamEquiv R lval lctx (.base (.bv m)) b₁ b₂) :
-  LamEquiv R lval lctx (.base (.bv n)) (.ashr_toNat_equiv_long n a₁ m b₁) (.ashr_toNat_equiv_long n a₂ m b₂) :=
+  (eqa : LamEquiv R? lval lctx (.base (.bv n)) a₁ a₂)
+  (eqb : LamEquiv R? lval lctx (.base (.bv m)) b₁ b₂) :
+  LamEquiv R? lval lctx (.base (.bv n)) (.ashr_toNat_equiv_long n a₁ m b₁) (.ashr_toNat_equiv_long n a₂ m b₂) :=
   congr _ (congr _ (congrArg _ (.ofBase (.ofIte _)) (congrFun _ (congrArg _ (.ofBase (.ofEq _))
     (congrFun _ (congrArg _ (.ofBase (.ofBvsmtlshr _)) eqb) (.ofBase (.ofBvVal _ _)))) (.ofBase (.ofBvVal _ _))))
     (congr _ (congrArg _ (.ofBase (.ofBvsmtashr _)) eqa) (congrArg _ (.ofBase (.ofBvzeroExtend _ _)) eqb)))
@@ -614,7 +614,7 @@ theorem LamEquiv.ashr_toNat_equiv_long
   (wfa : LamWF lval.toLamTyVal ⟨lctx, a, .base (.bv n)⟩)
   (wfb : LamWF lval.toLamTyVal ⟨lctx, b, .base (.bv m)⟩)
   (h : m > n) :
-  LamEquiv R lval lctx (.base (.bv n))
+  LamEquiv R? lval lctx (.base (.bv n))
     (.mkBvNatBinOp n (.bvashr n) a (.mkBvUOp m (.bvtoNat m) b))
     (.ashr_toNat_equiv_long n a m b) :=
   ⟨.mkBvNatBinOp (.ofBvashr _) wfa (.mkBvUOp (.ofBvtoNat _) wfb),
@@ -830,13 +830,13 @@ theorem LamTerm.evarEquiv_pushBVCast : evarEquiv (fun t => pushBVCast ct t) := b
 
 theorem LamEquiv.pushBVCast
   (wft : LamWF lval.toLamTyVal ⟨lctx, LamTerm.applyBVCast ct t, s⟩) :
-  LamEquiv R lval lctx s (t.applyBVCast ct) (t.pushBVCast ct) := by
+  LamEquiv R? lval lctx s (t.applyBVCast ct) (t.pushBVCast ct) := by
   generalize tl' : t.size = l; have tl : t.size ≤ l := by cases tl'; exact .refl
   clear tl'
   induction l generalizing t s ct lctx <;>
     try apply False.elim (LamTerm.size_ne_zero (Nat.le_zero.mp tl))
   case succ l IH =>
-    have hequivRefl : LamEquiv R lval lctx s (LamTerm.applyBVCast ct t) (LamTerm.applyBVCast ct t) := by
+    have hequivRefl : LamEquiv R? lval lctx s (LamTerm.applyBVCast ct t) (LamTerm.applyBVCast ct t) := by
       cases ct <;> apply refl _ wft
     cases t <;> try (cases ct <;> apply hequivRefl)
     case base b =>
@@ -1001,7 +1001,7 @@ theorem LamEquiv.pushBVCast
                             apply trans _ (ashr_toNat_equiv_long _ wft.getFn.getArg wft.getArg.getArg hlt) _
                             apply congr_ashr_toNat_equiv_long _ eArg₁ eArg₂
 
-theorem LamGenConv.pushBVCast : LamGenConv R lval (fun t => LamTerm.pushBVCast .none t) := by
+theorem LamGenConv.pushBVCast : LamGenConv R? lval (fun t => LamTerm.pushBVCast .none t) := by
   intros t₁ t₂ heq lctx rty wf; cases heq
   apply LamEquiv.pushBVCast _ (ct:=.none) wf
 

@@ -73,7 +73,7 @@ def inegLift.{u} (m : GLift.{1, u} Int) :=
   GLift.up (Int.neg m.down)
 
 def iabsLift.{u} (m : GLift.{1, u} Int) :=
-  GLift.up (ite (m.down < -m.down) (-m.down) m.down)
+  GLift.up (max m.down (-m.down))
 
 def iaddLift.{u} (m n : GLift.{1, u} Int) :=
   GLift.up (Int.add m.down n.down)
@@ -108,41 +108,85 @@ def imaxLift.{u} (m n : GLift.{1, u} Int) :=
 def iminLift.{u} (m n : GLift.{1, u} Int) :=
   GLift.up (min m.down n.down)
 
-def rofNatLift.{u}  {R : Type} [RealTy R] (m : GLift.{1, u} Nat) : GLift.{1, u} R :=
-  GLift.up (Nat.cast m.down : R)
+@[reducible] def realLiftTy.{u} (R? : Option ((R : Type) × RealTy R)) : Type u :=
+  match R? with
+  | some ⟨R, _⟩ => GLift.{1, u} R
+  | none        => PUnit
 
-def rofIntLift.{u} {R : Type} [RealTy R] (m : GLift.{1, u} Int) :=
-  GLift.up (Int.cast m.down : R)
+def rofScientificLift {R? : Option ((R : Type) × RealTy R)} (n : Nat) (sgn : Bool) (exp : Nat) : realLiftTy R? :=
+  match R? with
+  | some ⟨_, _⟩ => GLift.up (OfScientific.ofScientific n sgn exp)
+  | none => panic! "Lean-auto is trying to use reals without importing the mathlib instantiation."
 
-def rnegLift.{u} {R : Type} [RealTy R] (m : GLift.{1, u} R) :=
-  GLift.up (-m.down)
+def rzeroLift {R? : Option ((R : Type) × RealTy R)} : realLiftTy R? :=
+  match R? with
+  | some ⟨_, _⟩ => GLift.up 0
+  | none => panic! "Lean-auto is trying to use reals without importing the mathlib instantiation."
 
-def rabsLift.{u} {R : Type} [RealTy R] (m : GLift.{1, u} R) :=
-  GLift.up (max m.down (-m.down))
+def roneLift {R? : Option ((R : Type) × RealTy R)} : realLiftTy R? :=
+  match R? with
+  | some ⟨_, _⟩ => GLift.up 1
+  | none => panic! "Lean-auto is trying to use reals without importing the mathlib instantiation."
 
-def raddLift.{u} {R : Type} [RealTy R] (m n : GLift.{1, u} R) :=
-  GLift.up (m.down + n.down)
+def rofNatLift.{u} {R? : Option ((R : Type) × RealTy R)} (m : GLift.{1, u} Nat) : realLiftTy R? :=
+  match R? with
+  | some ⟨R, _⟩ => GLift.up (Nat.cast m.down : R)
+  | none => panic! "Lean-auto is trying to use reals without importing the mathlib instantiation."
 
-def rsubLift.{u} {R : Type} [RealTy R] (m n : GLift.{1, u} R) :=
-  GLift.up (m.down - n.down)
+def rofIntLift.{u} {R? : Option ((R : Type) × RealTy R)} (m : GLift.{1, u} Int) : realLiftTy R? :=
+  match R? with
+  | some ⟨R, _⟩ => GLift.up (Int.cast m.down : R)
+  | none => panic! "Lean-auto is trying to use reals without importing the mathlib instantiation."
 
-def rmulLift.{u} {R : Type} [RealTy R] (m n : GLift.{1, u} R) :=
-  GLift.up (m.down * n.down)
+def rnegLift.{u} {R? : Option ((R : Type) × RealTy R)} (m : realLiftTy.{u} R?) : realLiftTy R? :=
+  match R? with
+  | some ⟨_, _⟩ => GLift.up (-m.down)
+  | none => panic! "Lean-auto is trying to use reals without importing the mathlib instantiation."
 
-noncomputable def rdivLift.{u} {R : Type} [RealTy R] (m n : GLift.{1, u} R) :=
-  GLift.up (m.down / n.down)
+def rabsLift.{u} {R? : Option ((R : Type) × RealTy R)} (m : realLiftTy.{u} R?) : realLiftTy R? :=
+  match R? with
+  | some ⟨_, _⟩ => GLift.up (max m.down (-m.down))
+  | none => panic! "Lean-auto is trying to use reals without importing the mathlib instantiation."
 
-def rleLift.{u} {R : Type} [RealTy R] (m n : GLift.{1, u} R) :=
-  GLift.up (LE.le m.down n.down)
+def raddLift.{u} {R? : Option ((R : Type) × RealTy R)} (m n : realLiftTy.{u} R?) : realLiftTy R? :=
+  match R? with
+  | some ⟨_, _⟩ => GLift.up (m.down + n.down)
+  | none => panic! "Lean-auto is trying to use reals without importing the mathlib instantiation."
 
-def rltLift.{u} {R : Type} [RealTy R] (m n : GLift.{1, u} R) :=
-  GLift.up (LT.lt m.down n.down)
+def rsubLift.{u} {R? : Option ((R : Type) × RealTy R)} (m n : realLiftTy.{u} R?) : realLiftTy R? :=
+  match R? with
+  | some ⟨_, _⟩ => GLift.up (m.down - n.down)
+  | none => panic! "Lean-auto is trying to use reals without importing the mathlib instantiation."
 
-def rmaxLift.{u} {R : Type} [RealTy R] (m n : GLift.{1, u} R) :=
-  GLift.up (max m.down n.down)
+def rmulLift.{u} {R? : Option ((R : Type) × RealTy R)} (m n : realLiftTy.{u} R?) : realLiftTy R? :=
+  match R? with
+  | some ⟨_, _⟩ => GLift.up (m.down * n.down)
+  | none => panic! "Lean-auto is trying to use reals without importing the mathlib instantiation."
 
-def rminLift.{u} {R : Type} [RealTy R] (m n : GLift.{1, u} R) :=
-  GLift.up (min m.down n.down)
+noncomputable def rdivLift.{u} {R? : Option ((R : Type) × RealTy R)} (m n : realLiftTy.{u} R?) : realLiftTy R? :=
+  match R? with
+  | some ⟨_, _⟩ => GLift.up (m.down / n.down)
+  | none => panic! "Lean-auto is trying to use reals without importing the mathlib instantiation."
+
+def rleLift.{u} {R? : Option ((R : Type) × RealTy R)} (m n : realLiftTy.{u} R?) : GLift Prop :=
+  match R? with
+  | some ⟨_, _⟩ => GLift.up (LE.le m.down n.down)
+  | none => @panic (GLift Prop) ⟨GLift.up True⟩ "Lean-auto is trying to use reals without importing the mathlib instantiation."
+
+def rltLift.{u} {R? : Option ((R : Type) × RealTy R)} (m n : realLiftTy.{u} R?) : GLift Prop :=
+  match R? with
+  | some ⟨_, _⟩ => GLift.up (LT.lt m.down n.down)
+  | none => @panic (GLift Prop) ⟨GLift.up True⟩ "Lean-auto is trying to use reals without importing the mathlib instantiation."
+
+def rmaxLift.{u} {R? : Option ((R : Type) × RealTy R)} (m n : realLiftTy.{u} R?) : realLiftTy R? :=
+  match R? with
+  | some ⟨_, _⟩ => GLift.up (max m.down n.down)
+  | none => panic! "Lean-auto is trying to use reals without importing the mathlib instantiation."
+
+def rminLift.{u} {R? : Option ((R : Type) × RealTy R)} (m n : realLiftTy.{u} R?) : realLiftTy R? :=
+  match R? with
+  | some ⟨_, _⟩ => GLift.up (min m.down n.down)
+  | none => panic! "Lean-auto is trying to use reals without importing the mathlib instantiation."
 
 def sappLift.{u} (m n : GLift.{1, u} String) :=
   GLift.up (String.append m.down n.down)
