@@ -2,7 +2,6 @@ import Lean
 import Auto.Lib.MonadUtils
 import Auto.Lib.ExprExtra
 import Auto.Lib.MetaExtra
-import Auto.Lib.UnitReal
 import Auto.Translation.ReifM
 import Auto.Translation.LamUtils
 import Auto.Translation.SMTAttributes
@@ -1358,6 +1357,10 @@ def processLam0Arg2 (e fn arg₁ _arg₂ : Expr) : MetaM (Option LamTerm) := do
       if let .some (e', t) := h.arg2NoLit.lookup (fnName, arg₁Name) then
         if (← Meta.isDefEqD e e') then
           return .some t
+    if let .some h ← realReifExt.get then
+      if arg₁ == h.realTypeExpr then
+        if ← Meta.isDefEqD e h.zeroConst then return .some (.base (.rcst .rzero))
+        if ← Meta.isDefEqD e h.oneConst  then return .some (.base (.rcst .rone))
   if arg₁.isApp then
     let .app arg₁fn arg₁arg := arg₁
       | throwError "{decl_name%} :: Unexpected error"
@@ -1744,7 +1747,7 @@ section BuildChecker
     let importedFacts := Lean.toExpr importedFactsTree
     return (importTableExpr, importedFacts)
 
-  open Auto.Lam2D Auto.UnitReal in
+  open Auto.Lam2D in
   /--
     `re` is the entry we want to retrieve from the `validTable`
     The `expr` returned is a proof of the `LamThmValid`-ness of the entry
@@ -1771,7 +1774,7 @@ section BuildChecker
       return getEntry
     return checker
 
-  open Auto.Lam2D Auto.UnitReal in
+  open Auto.Lam2D in
   /--
     `re` is the entry we want to retrieve from the `validTable`
     The `expr` returned is a proof of the `LamThmValid`-ness of the entry
@@ -1831,7 +1834,7 @@ section BuildChecker
       (Lean.toExpr (← getLamEVarTyTree))
     mkNativeAuxDecl `lam_ssrefl_rr (Lean.mkConst ``RTable) runResultExpr
 
-  open Auto.Lam2D Auto.UnitReal in
+  open Auto.Lam2D in
   def buildFullCheckerExprFor_indirectReduce_reflection (re : REntry) : ReifM Expr := do
     printCheckerStats
     let R?Expr ← getRealOpt

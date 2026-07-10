@@ -4,7 +4,6 @@ import Auto.Solver.SMT
 import Auto.Solver.TPTP
 import Auto.Solver.Native
 import Auto.LemDB
-import Auto.Lib.UnitReal
 open Lean Elab Tactic
 
 initialize
@@ -539,7 +538,7 @@ def evalAuto : Tactic
       absurd.assign proof
 | _ => throwUnsupportedSyntax
 
-open Auto.LamReif Auto.Lam2D Auto.UnitReal in
+open Auto.LamReif Auto.Lam2D in
 /--
   Run `auto`'s preprocessing and monomorphization to abstract the
   problem into an essentially higher-order problem
