@@ -70,13 +70,13 @@ theorem LamEquiv.not_true_equiv_false :
   LamEquiv R? lval lctx (.base .prop) (.mkNot (.base .trueE)) (.base .falseE) := by
   exists LamWF.mkNot (.ofBase .ofTrueE); exists LamWF.ofBase .ofFalseE; intro lctxTerm
   simp only [LamWF.interp, LamBaseTerm.LamWF.interp]
-  apply GLift.down.inj; dsimp; apply eq_false; exact fun h => h .intro
+  apply GLift.down.inj; apply eq_false; exact fun h => h .intro
 
 theorem LamEquiv.not_false_equiv_true :
   LamEquiv R? lval lctx (.base .prop) (.mkNot (.base .falseE)) (.base .trueE) := by
   exists LamWF.mkNot (.ofBase .ofFalseE); exists LamWF.ofBase .ofTrueE; intro lctxTerm
   simp only [LamWF.interp, LamBaseTerm.LamWF.interp]
-  apply GLift.down.inj; dsimp; apply eq_true; exact id
+  apply GLift.down.inj; apply eq_true; exact id
 
 theorem LamEquiv.prop_ne_equiv_eq_not
   (wfl : LamWF lval.toLamTyVal ⟨lctx, lhs, .base .prop⟩)
@@ -187,7 +187,7 @@ theorem LamEquiv.true_eq_false_equiv_false?
     match wft with
     | .ofApp _ (.ofApp _ (.ofBase (.ofEq _)) (.ofBase .ofTrueE)) (.ofBase .ofFalseE) =>
       exists (.ofBase .ofFalseE); intro lctxTerm; apply GLift.down.inj
-      dsimp [LamWF.interp, LamBaseTerm.LamWF.interp, eqLiftFn]
+      simp only [LamWF.interp, LamBaseTerm.LamWF.interp]
       apply propext (Iff.intro ?mp False.elim)
       case mp =>
         intro h; have h' := GLift.up.inj h; contradiction
@@ -228,7 +228,7 @@ theorem LamEquiv.false_eq_true_equiv_false?
     match wft with
     | .ofApp _ (.ofApp _ (.ofBase (.ofEq _)) (.ofBase .ofFalseE)) (.ofBase .ofTrueE) =>
       exists (.ofBase .ofFalseE); intro lctxTerm; apply GLift.down.inj
-      dsimp [LamWF.interp, LamBaseTerm.LamWF.interp, eqLiftFn]
+      simp only [LamWF.interp, LamBaseTerm.LamWF.interp]
       apply propext (Iff.intro ?mp False.elim)
       case mp =>
         intro h; have h' := GLift.up.inj h; contradiction
@@ -393,7 +393,7 @@ def LamTerm.not_eq_true_equiv_eq_false? (t : LamTerm) : Option LamTerm :=
     .some (.mkEq (.base .prop) lhs (.base .falseE))
   | _ => .none
 
-def LamTerm.maxEVarSucc_not_eq_true_equiv_eq_false?
+theorem LamTerm.maxEVarSucc_not_eq_true_equiv_eq_false?
   (heq : LamTerm.not_eq_true_equiv_eq_false? t = .some t') :
   t'.maxEVarSucc = t.maxEVarSucc :=
   match t, heq with
@@ -427,7 +427,7 @@ def LamTerm.not_eq_false_equiv_eq_true? (t : LamTerm) : Option LamTerm :=
     .some (.mkEq (.base .prop) lhs (.base .trueE))
   | _ => .none
 
-def LamTerm.maxEVarSucc_not_eq_false_equiv_eq_true?
+theorem LamTerm.maxEVarSucc_not_eq_false_equiv_eq_true?
   (heq : LamTerm.not_eq_false_equiv_eq_true? t = .some t') :
   t'.maxEVarSucc = t.maxEVarSucc :=
   match t, heq with
@@ -460,7 +460,7 @@ theorem LamEquiv.not_not_equiv
   LamEquiv R? lval lctx (.base .prop) (.mkNot (.mkNot t)) t := by
   exists (.mkNot (.mkNot wft)); exists wft; intro lctxTerm
   dsimp [LamTerm.mkNot, LamWF.interp, LamBaseTerm.LamWF.interp, notLift]
-  apply GLift.down.inj; dsimp
+  apply GLift.down.inj
   apply propext (Iff.intro Classical.byContradiction (fun a b => b a))
 
 def LamTerm.not_not_equiv? (t : LamTerm) : Option LamTerm :=

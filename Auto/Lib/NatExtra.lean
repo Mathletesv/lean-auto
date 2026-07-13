@@ -3,7 +3,7 @@ import Auto.Lib.BoolExtra
 namespace Auto
 
 /-- A version of `Nat.beq_refl` that reduces to `Eq.refl` -/
-def Nat.beq_refl' : (a : Nat) → (a.beq a) = true
+theorem Nat.beq_refl' : (a : Nat) → (a.beq a) = true
 | 0 => rfl
 | n + 1 => Nat.beq_refl' n
 
@@ -22,8 +22,8 @@ theorem Nat.ble_eq_false_of_lt (n : Nat) : pos < n → Nat.ble n pos = false := 
 
 theorem Nat.ble_eq_false_eq_lt (n : Nat) : (pos < n) = (Nat.ble n pos = false) := by
   apply propext; apply Iff.intro
-  case a.mp => apply Nat.ble_eq_false_of_lt
-  case a.mpr => apply Nat.lt_of_ble_eq_false
+  case mp => apply Nat.ble_eq_false_of_lt
+  case mpr => apply Nat.lt_of_ble_eq_false
 
 theorem Nat.beq_eq_false_of_ne {m n : Nat} (H : m ≠ n) : Nat.beq m n = false := by
   cases h : Nat.beq m n

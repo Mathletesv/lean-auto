@@ -85,7 +85,7 @@ theorem LamWF.mapBVarAt.correct (lval : LamValuation.{u} R?) {restoreDep : _}
   apply eq_of_heq; apply HEq.symm (HEq.trans (interp_bvar _ _) _)
   apply (coPairDepAt.ofCoPairDep covPD).right
 | .lam argTy body, .ofLam bodyTy wfBody => by
-  apply funext; intros x; dsimp [LamWF.interp]
+  apply funext; intros x
   apply Eq.trans (LamWF.mapBVarAt.correct _ covPD (.succ idx) _ _ wfBody)
   apply LamWF.interp_substLCtxTerm_rec
   apply restoreAtDep_succ_pushLCtxDep_Fn

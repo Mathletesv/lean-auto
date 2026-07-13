@@ -9,7 +9,7 @@ structure GLift.{u, v} (α : Sort u) : Sort (max u (v + 1)) where
   /-- Lift a value into `GLift α` -/    up ::
   /-- Extract a value from `GLift α` -/ down : α
 
-def GLift.down.inj (x y : GLift α) (H : GLift.down x = GLift.down y) : x = y :=
+theorem GLift.down.inj (x y : GLift α) (H : GLift.down x = GLift.down y) : x = y :=
   show GLift.up (GLift.down x) = GLift.up (GLift.down y) by rw [H]
 
 def notLift.{u} (p : GLift.{1, u} Prop) :=
@@ -337,16 +337,16 @@ def LiftTyConv.{u, v} (tyUp : GLift.{u + 1, v} (Sort u)) :=
 def eqLift.{u, v, w} {α : Sort u} {β : Sort v} (I : IsomType α β) (x y : β) :=
   GLift.up.{_, w} (I.g x = I.g y)
 
-def eqLift_refl.{u, v, w} {α : Sort u} {β : Sort v} (I : IsomType α β) (x : β) :
+theorem eqLift_refl.{u, v, w} {α : Sort u} {β : Sort v} (I : IsomType α β) (x : β) :
   GLift.down (eqLift.{u, v, w} I x x) := rfl
 
-def eqLift.down.{u, v, w} {α : Sort u} {β : Sort v} (I : IsomType α β)
+theorem eqLift.down.{u, v, w} {α : Sort u} {β : Sort v} (I : IsomType α β)
   (x y : β) (H : GLift.down (eqLift.{u, v, w} I x y)) : x = y :=
   let H₁ : I.f (I.g x) = I.f (I.g y) := H ▸ rfl
   let H₂ : x = I.f (I.g y) := I.eq₂ x ▸ H₁
   I.eq₂ y ▸ H₂
 
-def eqLift.up.{u, v, w} {α : Sort u} {β : Sort v} (I : IsomType α β)
+theorem eqLift.up.{u, v, w} {α : Sort u} {β : Sort v} (I : IsomType α β)
   (x y : β) (H : x = y) : GLift.down (eqLift.{u, v, w} I x y) :=
   H ▸ eqLift_refl.{u, v, w} I x
 
@@ -388,6 +388,7 @@ def forallLift.up
   (H : ∀ (x : β), GLift.down (p x)) : GLift.down (forallLift I p) :=
   fun x => I.eq₁ x ▸ H (I.f x)
 
+set_option linter.checkUnivs false in
 structure ForallLift (β : Sort v') where
   forallF : (β → GLift.{w + 1, v} (Sort w)) → GLift.{w' + 1, v} (Sort w')
   down    : ∀ (p : β → GLift.{w + 1, v} (Sort w)), (forallF p).down → (∀ x : β, (p x).down)
@@ -410,13 +411,13 @@ def existLift {α : Sort u} {β : Sort v} (I : IsomType α β)
   (p : β → GLift.{1, x} Prop) :=
   GLift.up.{_, x} (∃ (x : α), GLift.down (p (I.f x)))
 
-def existLift.down
+theorem existLift.down
   {α : Sort u} {β : Sort v} (I : IsomType α β)
   (p : β → GLift.{1, x} Prop)
   (H : GLift.down (existLift I p)) : ∃ x, GLift.down (p x) := by
   cases H; case intro x proof => exists I.f x;
 
-def existLift.up
+theorem existLift.up
   {α : Sort u} {β : Sort v} (I : IsomType α β)
   (p : β → GLift.{1, x} Prop)
   (H : ∃ x, GLift.down (p x)) : GLift.down (existLift I p) := by
@@ -444,7 +445,7 @@ theorem existGLift_equiv (p : β → Prop) : (∃ (x : GLift β), p x.down) = (�
 noncomputable def iteLift {α : Sort u} {β : Sort v} (I : IsomType α β) (b : GLift.{_, x} Prop) (x y : β) :=
   I.f (Bool.ite' b.down (I.g x) (I.g y))
 
-def iteLift.wf
+theorem iteLift.wf
   {α : Sort u} {β : Sort v} (I : IsomType α β)
   (p : GLift.{_, x} Prop) (x y : β) : iteLift I p x y = Bool.ite' p.down x y := by
   cases p; case up p =>
