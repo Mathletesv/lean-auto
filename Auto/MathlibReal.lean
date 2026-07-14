@@ -1,3 +1,11 @@
+/-
+This file provides the same structure for Real that exists for the other LamBaseSort types
+It is the only file that imports Mathlib, and registers its constants through mutable references
+which are used by Lean-auto to treat reals similarly to the way it handles integers.
+
+Zero and one are handled specially because Lean represents them differently from other naturals.
+sciVal is used to handle floats that are converted into reals.
+-/
 import Lean
 import Mathlib.Data.Real.Basic
 import Auto.Translation.LamReif
@@ -65,7 +73,7 @@ let realc := mkConst ``Real
     (mkApp2 (.const ``instHMul [.zero]) realc (mkConst ``Real.instMul))),
   -- (``Real.div   , mkApp4
   --   (.const ``HDiv.hDiv [.zero, .zero, .zero]) realc realc realc
-  --   (mkApp2 (.const ``instHDiv [.zero]) realc (mkConst ``Real.instDivReal))),
+  --   (mkApp2 (.const ``instHDiv [.zero]) realc (mkConst ``Real.instDiv))),
   (``Real.le    , mkApp2 (.const ``LE.le [.zero]) realc (mkConst ``Real.instLE)),
   (``Real.lt    , mkApp2 (.const ``LT.lt [.zero]) realc (mkConst ``Real.instLT)),
   (``Real.max   , mkApp2 (.const ``Max.max [.zero]) realc (mkConst ``Real.instMax)),

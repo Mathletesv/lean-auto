@@ -108,10 +108,15 @@ def imaxLift.{u} (m n : GLift.{1, u} Int) :=
 def iminLift.{u} (m n : GLift.{1, u} Int) :=
   GLift.up (min m.down n.down)
 
+/-
+These functions handle reals as expected when they are imported, and panic otherwise.
+It should not be possible for them to panic in practice,
+as that would imply that lean-auto is attempting to use reals without them being imported.
+-/
 @[reducible] def realLiftTy.{u} (R? : Option ((R : Type) × RealTy R)) : Type u :=
   match R? with
   | some ⟨R, _⟩ => GLift.{1, u} R
-  | none        => PUnit
+  | none => PUnit
 
 def rofScientificLift {R? : Option ((R : Type) × RealTy R)} (n : Nat) (sgn : Bool) (exp : Nat) : realLiftTy R? :=
   match R? with
