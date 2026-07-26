@@ -755,6 +755,29 @@ section TPTP
   example (f : ((Empty → Prop) → Prop) → Prop) :
     f Exists = f Exists := by auto
 
+  -- Regression tests for #72: expanding a non-lambda quantifier body must not
+  -- capture bound variables from the surrounding context.
+  #guard (Auto.Lam2TH0.transLamTerm
+      (.app (.func (.atom 0) (.base .prop)) (.base (.existE (.atom 0))) (.bvar 0)) 1).toOption ==
+    .some "(? [X1 : s_a0] : (X0 @ X1))"
+
+  #guard (Auto.Lam2TH0.transLamTerm
+      (.app (.func (.atom 0) (.base .prop)) (.base (.forallE (.atom 0))) (.bvar 0)) 1).toOption ==
+    .some "(! [X1 : s_a0] : (X0 @ X1))"
+
+  #guard (Auto.Lam2TH0.transLamTerm
+      (.app (.func (.atom 0) (.base .prop)) (.base (.forallE (.atom 0)))
+        (.lam (.atom 0)
+          (.app (.func (.atom 0) (.base .prop)) (.base (.existE (.atom 0)))
+            (.app (.atom 0) (.bvar 1) (.bvar 0))))) 1).toOption ==
+    .some "(! [X1 : s_a0] : (? [X2 : s_a0] : ((X0 @ X1) @ X2)))"
+
+  -- An explicit lambda body is stripped directly and must not be lifted again.
+  #guard (Auto.Lam2TH0.transLamTerm
+      (.app (.func (.atom 0) (.base .prop)) (.base (.existE (.atom 0)))
+        (.lam (.atom 0) (.app (.atom 0) (.bvar 1) (.bvar 0)))) 1).toOption ==
+    .some "(? [X1 : s_a0] : (X0 @ X1))"
+
 end TPTP
 
 -- Issues
