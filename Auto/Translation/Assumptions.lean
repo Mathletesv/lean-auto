@@ -1,11 +1,16 @@
-import Lean
-import Auto.Lib.BoolExtra
-import Auto.Lib.MessageData
-import Auto.Lib.ExprExtra
-import Auto.Lib.ListExtra
-import Auto.Lib.MetaExtra
-import Auto.Lib.Containers
-import Auto.Lib.AbstractMVars
+module
+
+public import Lean
+public import Auto.Lib.BoolExtra
+public import Auto.Lib.MessageData
+public import Auto.Lib.ExprExtra
+public import Auto.Lib.ListExtra
+public import Auto.Lib.MetaExtra
+public import Auto.Lib.Containers
+public import Auto.Lib.AbstractMVars
+
+public section
+
 open Lean
 
 namespace Auto

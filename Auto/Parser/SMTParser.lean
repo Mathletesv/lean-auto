@@ -1,6 +1,11 @@
-import Lean
-import Auto.Parser.LexInit
-import Auto.Parser.SMTSexp
+module
+
+public import Lean
+public import Auto.Parser.LexInit
+public import Auto.Parser.SMTSexp
+
+public section
+
 open Lean
 
 namespace Auto

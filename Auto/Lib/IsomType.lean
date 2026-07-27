@@ -1,3 +1,7 @@
+module
+
+@[expose] public section
+
 namespace Auto
 
 structure IsomType (α : Sort u) (β : Sort v) where

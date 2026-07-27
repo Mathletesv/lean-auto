@@ -1,11 +1,16 @@
-import Lean
-import Auto.Lib.ExprExtra
-import Auto.Lib.MetaExtra
-import Auto.Lib.MetaState
-import Auto.Lib.ToExprExtra
-import Auto.Embedding.LamChecker
-import Auto.Translation.Assumptions
-import Auto.Translation.LamUtils
+module
+
+public import Lean
+public import Auto.Lib.ExprExtra
+public import Auto.Lib.MetaExtra
+public import Auto.Lib.MetaState
+public import Auto.Lib.ToExprExtra
+public import Auto.Embedding.LamChecker
+public import Auto.Translation.Assumptions
+public import Auto.Translation.LamUtils
+
+public section
+
 open Lean
 
 initialize

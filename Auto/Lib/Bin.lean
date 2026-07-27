@@ -1,3 +1,7 @@
+module
+
+@[expose] public section
+
 namespace Auto.Bin
 
 theorem wfAux (n : Nat) : (n + 2).div 2 < n + 2 := by

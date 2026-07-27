@@ -1,7 +1,12 @@
-import Lean
-import Auto.Lib.MetaExtra
-import Auto.Lib.Rebind
-import Auto.Translation.Assumptions
+module
+
+public import Lean
+public import Auto.Lib.MetaExtra
+public import Auto.Lib.Rebind
+public import Auto.Translation.Assumptions
+
+public section
+
 open Lean
 
 register_option auto.native : Bool := {
@@ -23,7 +28,7 @@ namespace Auto.Solver.Native
 
 private def nativeFuncExpectedType := Array Lemma → MetaM Expr
 
-private unsafe def queryNativeUnsafe (lemmas : Array Lemma) (inhLemmas : Array Lemma) : MetaM Expr := do
+private meta unsafe def queryNativeUnsafe (lemmas : Array Lemma) (inhLemmas : Array Lemma) : MetaM Expr := do
   let nativeFuncCst ← eval_rebind% Auto.Native.solverFunc
   for lem in lemmas do
     trace[auto.native.printFormulas] "{lem.type}"
@@ -32,7 +37,7 @@ private unsafe def queryNativeUnsafe (lemmas : Array Lemma) (inhLemmas : Array L
   return proof
 
 @[implemented_by queryNativeUnsafe]
-opaque queryNative : Array Lemma → Array Lemma → MetaM Expr
+meta opaque queryNative : Array Lemma → Array Lemma → MetaM Expr
 
 /--
   Emulate a native prover. When given lemmas `h₁, ⋯, hₙ`, the

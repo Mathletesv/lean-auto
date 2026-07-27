@@ -1,9 +1,14 @@
-import Lean
-import Auto.Lib.ExprExtra
-import Auto.Lib.MetaExtra
+module
+
+public import Lean
+public import Auto.Lib.ExprExtra
+public import Auto.Lib.MetaExtra
+
+public section
+
 open Lean Meta
 
-private instance : ToString TransparencyMode where
+instance : ToString TransparencyMode where
   toString : TransparencyMode → String
   | .all       => "all"
   | .default   => "default"
@@ -11,7 +16,7 @@ private instance : ToString TransparencyMode where
   | .instances => "instances"
   | .none      => "none"
 
-private instance : Lean.KVMap.Value TransparencyMode where
+instance : Lean.KVMap.Value TransparencyMode where
   toDataValue t := toString t
   ofDataValue?
   | "all"       => some .all

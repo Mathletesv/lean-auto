@@ -1,4 +1,9 @@
-import Auto.Embedding.LamBase
+module
+
+public import Auto.Embedding.LamBase
+
+@[expose] public section
+
 open Lean
 
 namespace Auto.Embedding.Lam

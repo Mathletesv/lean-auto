@@ -1,13 +1,18 @@
-import Lean
-import Auto.EvaluateAuto.OS
-import Auto.EvaluateAuto.Result
-import Auto.EvaluateAuto.ConstAnalysis
-import Auto.EvaluateAuto.EnvAnalysis
-import Auto.EvaluateAuto.NameArr
-import Auto.EvaluateAuto.CommandAnalysis
-import Auto.Tactic
-import Auto.EvaluateAuto.AutoConfig
-import Std
+module
+
+public import Lean
+public import Auto.EvaluateAuto.OS
+public import Auto.EvaluateAuto.Result
+public import Auto.EvaluateAuto.ConstAnalysis
+public import Auto.EvaluateAuto.EnvAnalysis
+public import Auto.EvaluateAuto.NameArr
+public import Auto.EvaluateAuto.CommandAnalysis
+public import Auto.Tactic
+public import Auto.EvaluateAuto.AutoConfig
+public import Std
+
+public section
+
 open Lean
 
 namespace EvalAuto

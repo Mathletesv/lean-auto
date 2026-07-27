@@ -1,5 +1,9 @@
-import Auto.Embedding.LamConv
-import Auto.Lib.NatExtra
+module
+
+public import Auto.Embedding.LamConv
+public import Auto.Lib.NatExtra
+
+@[expose] public section
 
 namespace Auto.Embedding.Lam
 

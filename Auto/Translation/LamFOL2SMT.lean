@@ -1,8 +1,13 @@
-import Lean
-import Auto.Embedding.LamChecker
-import Auto.IR.SMT
-import Auto.Solver.SMT
-import Auto.Translation.LamUtils
+module
+
+public import Lean
+public import Auto.Embedding.LamChecker
+public import Auto.IR.SMT
+public import Auto.Solver.SMT
+public import Auto.Translation.LamUtils
+
+public section
+
 open Lean
 
 initialize
@@ -26,7 +31,7 @@ open IR.SMT
 namespace SMT
 
 /-- High-level construct -/
-private inductive LamAtomic where
+inductive LamAtomic where
   /- Sort atom -/
   | sort     : Nat → LamAtomic
   /- Term atom -/
@@ -47,7 +52,7 @@ private inductive LamAtomic where
   | compProj : LamTerm → LamAtomic
 deriving Inhabited, Hashable, BEq
 
-private def LamAtomic.toString : LamAtomic → String
+def LamAtomic.toString : LamAtomic → String
 | .sort n     => s!"sort {n}"
 | .term n     => s!"term {n}"
 | .etom n     => s!"etom {n}"

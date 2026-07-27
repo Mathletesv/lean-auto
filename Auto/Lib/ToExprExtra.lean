@@ -1,5 +1,10 @@
-import Lean
-import Auto.MathlibEmulator
+module
+
+public import Lean
+public import Auto.MathlibEmulator
+
+public section
+
 open Lean
 
 namespace Auto.ToExprExtra

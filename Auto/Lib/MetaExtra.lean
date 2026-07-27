@@ -1,5 +1,11 @@
-import Lean
-import Auto.Lib.ExprExtra
+module
+
+public import Lean
+public meta import Lean
+public import Auto.Lib.ExprExtra
+
+public section
+
 open Lean Meta Elab
 
 initialize
@@ -76,7 +82,7 @@ def Meta.trySynthInhabited (e : Expr) : MetaM (Option Expr) := do
 syntax (name := fromMetaTactic) "fromMetaTactic" "[" ident "]" : tactic
 
 @[tactic fromMetaTactic]
-unsafe def evalFromMetaTactic : Tactic.Tactic
+meta unsafe def evalFromMetaTactic : Tactic.Tactic
 | `(fromMetaTactic | fromMetaTactic [ $i ]) => do
   let some iexpr ← Term.resolveId? i
     | throwError "{decl_name%} :: Unknown identifier {i}"

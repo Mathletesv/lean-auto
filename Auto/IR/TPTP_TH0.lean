@@ -1,4 +1,8 @@
-import Auto.Embedding.LamConv
+module
+
+public import Auto.Embedding.LamConv
+
+public section
 
 namespace Auto.Lam2TH0
 open Embedding.Lam

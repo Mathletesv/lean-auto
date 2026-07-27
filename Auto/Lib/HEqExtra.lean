@@ -1,3 +1,7 @@
+module
+
+@[expose] public section
+
 namespace Auto
 
 theorem heq_of_cast_eq : ∀ (e : α = β) (_ : cast e a = a'), HEq a a'

@@ -1,5 +1,10 @@
-import Lean
-import Auto.Parser.LexInit
+module
+
+public import Lean
+public import Auto.Parser.LexInit
+
+public section
+
 open Lean
 
 
