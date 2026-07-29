@@ -1,4 +1,9 @@
-import Lean
+module
+
+public import Lean
+public meta import Lean
+
+public meta section
 
 /-!
 # `mkConstFamily` — macro for the constant-family scaffolding in `LamBase.lean`.

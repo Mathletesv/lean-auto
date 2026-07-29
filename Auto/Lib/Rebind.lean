@@ -1,4 +1,9 @@
-import Lean
+module
+
+public import Lean
+public meta import Lean
+
+public meta section
 
 open Lean
 
@@ -56,7 +61,11 @@ initialize
         let fnName := fnName.getId.eraseMacroScopes
         let some r := getRebind? (← getEnv) fnName
           | throwError "No such rebindable function {fnName}"
-        let some info := (← getEnv).find? decl | unreachable!
+        -- `withoutExporting`: attributes are elaborated in exporting mode, in which only
+        -- publicly reachable declarations are visible. `decl` may well have been reached
+        -- through a private import, so look it up in the full environment.
+        let some info ← withoutExporting (do return (← getEnv).find? decl)
+          | throwError "Unknown declaration {decl}"
         unless info.levelParams.isEmpty do
           throwError "Declaration has level parameters, which is not supported."
         unless ← Meta.MetaM.run' <| Meta.isDefEq info.type r.type do

@@ -1,6 +1,11 @@
 -- Computational NFA and DFA
-import Lean
-import Auto.Lib.ListExtra
+module
+
+public import Lean
+public import Auto.Lib.ListExtra
+
+public section
+
 open Lean
 
 namespace Auto

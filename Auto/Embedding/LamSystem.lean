@@ -1,4 +1,8 @@
-import Auto.Embedding.LamBVarOp
+module
+
+public import Auto.Embedding.LamBVarOp
+
+@[expose] public section
 
 namespace Auto.Embedding.Lam
 

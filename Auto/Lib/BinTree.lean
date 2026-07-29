@@ -1,13 +1,17 @@
-import Lean
-import Auto.MathlibEmulator
-import Auto.Lib.BoolExtra
-import Auto.Lib.NatExtra
-import Auto.Lib.OptionExtra
-import Auto.Lib.Containers
-import Auto.Lib.Pos
-import Auto.Lib.Bin
+module
+
+public import Lean
+public import Auto.MathlibEmulator
+public import Auto.Lib.BoolExtra
+public import Auto.Lib.NatExtra
+public import Auto.Lib.OptionExtra
+public import Auto.Lib.Containers
+public import Auto.Lib.Pos
+public import Auto.Lib.Bin
 -- Make sure that `Lean.toExpr Nat` is overriden
-import Auto.Lib.ToExprExtra
+public import Auto.Lib.ToExprExtra
+
+@[expose] public section
 
 /-
   Polymorphic binary tree
@@ -57,7 +61,7 @@ private def toStringDisplayAux [ToString α] (ctx : String) : BinTree α → Str
   let sx := match x with | .some x => ctx ++ " : " ++ ToString.toString x ++ "\n" | .none => ""
   l.toStringDisplayAux (ctx ++ "0") ++ sx ++ r.toStringDisplayAux (ctx ++ "1")
 
-def toStringDisplay [ToString α] (bt : BinTree α) := toStringDisplayAux "R" bt
+@[no_expose] def toStringDisplay [ToString α] (bt : BinTree α) := toStringDisplayAux "R" bt
 
 theorem eq_of_beq_eq_true [BEq α] (α_eq_of_beq_eq_true : ∀ (x y : α), (x == y) = true → x = y)
   {a b : BinTree α} (H : (a == b) = true) : a = b := by

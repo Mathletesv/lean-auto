@@ -1,4 +1,9 @@
-import Auto.Lib.NatExtra
+module
+
+public import Auto.Lib.NatExtra
+
+@[expose] public section
+
 namespace Auto
 
 def Int.beq : Int → Int → Bool

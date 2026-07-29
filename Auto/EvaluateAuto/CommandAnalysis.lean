@@ -1,7 +1,12 @@
-import Lean
-import Auto.EvaluateAuto.EnvAnalysis
-import Auto.EvaluateAuto.ConstAnalysis
-import Auto.EvaluateAuto.Result
+module
+
+public import Lean
+public import Auto.EvaluateAuto.EnvAnalysis
+public import Auto.EvaluateAuto.ConstAnalysis
+public import Auto.EvaluateAuto.Result
+
+public section
+
 open Lean
 
 register_option auto.testTactics.ensureAesop : Bool := {

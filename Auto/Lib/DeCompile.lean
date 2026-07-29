@@ -1,5 +1,10 @@
-import Lean
-import Auto.Lib.ExprExtra
+module
+
+public import Lean
+public import Auto.Lib.ExprExtra
+
+public section
+
 open Lean
 
 namespace Auto

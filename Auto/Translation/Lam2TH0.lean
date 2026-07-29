@@ -1,5 +1,9 @@
-import Auto.IR.TPTP_TH0
-import Auto.Translation.LamUtils
+module
+
+public import Auto.IR.TPTP_TH0
+public import Auto.Translation.LamUtils
+
+public section
 
 namespace Auto
 open Lean Embedding.Lam Lam2TH0

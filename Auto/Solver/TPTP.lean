@@ -1,8 +1,13 @@
-import Lean
-import Auto.IR.TPTP_TH0
-import Auto.Parser.TPTP
-import Auto.Embedding.LamBase
-import Auto.Lib.PathDecl
+module
+
+public import Lean
+public import Auto.IR.TPTP_TH0
+public import Auto.Parser.TPTP
+public import Auto.Embedding.LamBase
+public import Auto.Lib.PathDecl
+
+public section
+
 open Lean
 
 initialize

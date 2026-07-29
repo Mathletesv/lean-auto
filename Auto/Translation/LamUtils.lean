@@ -1,6 +1,11 @@
-import Lean
-import Auto.Lib.MetaState
-import Auto.Embedding.LamBase
+module
+
+public import Lean
+public import Auto.Lib.MetaState
+public import Auto.Embedding.LamBase
+
+public section
+
 open Lean
 
 namespace Auto

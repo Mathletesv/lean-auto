@@ -1,5 +1,10 @@
-import Lean
-import Auto.Parser.LeanLex
+module
+
+public import Lean
+public import Auto.Parser.LeanLex
+
+public section
+
 open Lean
 
 namespace Auto.Lexer

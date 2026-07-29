@@ -1,4 +1,8 @@
-import Auto.Embedding.LamSystem
+module
+
+public import Auto.Embedding.LamSystem
+
+@[expose] public section
 
 namespace Auto.Embedding.Lam
 
@@ -856,7 +860,7 @@ def LamWF.instantiateAt
   | false => exact .ofBVar n
 | lctx, wfArg, .ofLam (argTy:=argTy') bodyTy' (body:=body') H =>
   let wfArg' := LamWF.bvarLiftIdx (s:=argTy') (lctx:=lctx) 0 _ wfArg
-  let IHArg := LamWF.instantiateAt ltv (Nat.succ idx) _
+  let IHArg := LamWF.instantiateAt (arg:=arg) (argTy:=argTy) ltv (Nat.succ idx) _
     (by
       dsimp [LamTerm.bvarLifts] at wfArg'
       rw [pushLCtxAt_zero, ← LamTerm.bvarLiftsIdx_succ_r] at wfArg'

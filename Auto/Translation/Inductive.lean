@@ -1,9 +1,14 @@
-import Lean
-import Auto.Lib.ExprExtra
-import Auto.Lib.MessageData
-import Auto.Lib.MetaExtra
-import Auto.Lib.MonadUtils
-import Auto.Translation.Reduction
+module
+
+public import Lean
+public import Auto.Lib.ExprExtra
+public import Auto.Lib.MessageData
+public import Auto.Lib.MetaExtra
+public import Auto.Lib.MonadUtils
+public import Auto.Translation.Reduction
+
+public section
+
 open Lean
 
 initialize

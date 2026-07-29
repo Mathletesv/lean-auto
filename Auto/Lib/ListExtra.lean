@@ -1,4 +1,8 @@
-import Auto.Lib.IsomType
+module
+
+public import Auto.Lib.IsomType
+
+@[expose] public section
 
 namespace Auto
 

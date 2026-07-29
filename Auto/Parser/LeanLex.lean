@@ -1,5 +1,10 @@
-import Lean
-import Auto.Parser.NDFA
+module
+
+public import Lean
+public import Auto.Parser.NDFA
+
+public section
+
 open Lean
 
 namespace Auto

@@ -1,5 +1,9 @@
-import Auto.Lib.HEqExtra
-import Auto.Lib.IsomType
+module
+
+public import Auto.Lib.HEqExtra
+public import Auto.Lib.IsomType
+
+@[expose] public section
 
 namespace Auto
 

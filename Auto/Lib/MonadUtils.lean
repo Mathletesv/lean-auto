@@ -1,5 +1,12 @@
-import Lean
-import Auto.Lib.DeCompile
+module
+
+public import Lean
+public meta import Lean
+public import Auto.Lib.DeCompile
+public meta import Auto.Lib.DeCompile
+
+public meta section
+
 open Lean Elab Command
 
 initialize

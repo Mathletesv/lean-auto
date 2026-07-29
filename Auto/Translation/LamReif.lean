@@ -1,13 +1,18 @@
-import Lean
-import Auto.Lib.MonadUtils
-import Auto.Lib.ExprExtra
-import Auto.Lib.MetaExtra
-import Auto.Translation.ReifM
-import Auto.Translation.LamUtils
-import Auto.Translation.SMTAttributes
-import Auto.MathlibEmulator
-import Auto.Embedding.LamChecker
-import Auto.Embedding.LamInhReasoning
+module
+
+public import Lean
+public import Auto.Lib.MonadUtils
+public import Auto.Lib.ExprExtra
+public import Auto.Lib.MetaExtra
+public import Auto.Translation.ReifM
+public import Auto.Translation.LamUtils
+public import Auto.Translation.SMTAttributes
+public import Auto.MathlibEmulator
+public import Auto.Embedding.LamChecker
+public import Auto.Embedding.LamInhReasoning
+
+public section
+
 open Lean
 
 initialize

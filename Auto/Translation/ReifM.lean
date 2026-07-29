@@ -1,7 +1,12 @@
-import Lean
-import Auto.Lib.MonadUtils
-import Auto.Translation.Assumptions
-import Auto.Translation.Inductive
+module
+
+public import Lean
+public import Auto.Lib.MonadUtils
+public import Auto.Translation.Assumptions
+public import Auto.Translation.Inductive
+
+public section
+
 open Lean
 
 namespace Auto.Reif

@@ -1,4 +1,6 @@
-import Auto.Tactic
-import Auto.EvaluateAuto.TestAuto
-import Auto.EvaluateAuto.TestTactics
-import Auto.EvaluateAuto.TestTranslation
+module
+
+public import Auto.Tactic
+public import Auto.EvaluateAuto.TestAuto
+public import Auto.EvaluateAuto.TestTactics
+public import Auto.EvaluateAuto.TestTranslation

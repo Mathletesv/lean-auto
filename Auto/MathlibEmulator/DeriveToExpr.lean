@@ -3,8 +3,12 @@ Copyright (c) 2023 Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
-import Lean
-import Auto.MathlibEmulator.ToLevel
+module
+
+public import Lean
+public import Auto.MathlibEmulator.ToLevel
+
+public section
 
 inductive Lar (α : Type u) where
   | nil : Lar α
@@ -151,7 +155,7 @@ def mkToLevelBinders (indVal : InductiveVal) : TermElabM (TSyntaxArray ``instBin
 open TSyntax.Compat in
 /-- Make a `toExpr` function for the given inductive type.
 The implementations of each `toExpr` function for a (mutual) inductive type
-are given as top-level private definitions.
+are given as top-level definitions (with unexposed bodies).
 These end up being assembled into `ToExpr` instances in `mkInstanceCmds`.
 For mutual inductive types,
 then each of the other types' `ToExpr` instances are provided as local instances,
@@ -175,10 +179,10 @@ def mkAuxFunction (ctx : Deriving.Context) (i : Nat) : TermElabM Command := do
     ++ #[← addLevels header.binders.back!]
   let levels := indVal.levelParams.toArray.map mkIdent
   if ctx.usePartial then
-    `(private partial def $(mkIdent auxFunName):ident.{$levels,*} $binders:bracketedBinder* :
+    `(@[no_expose] partial def $(mkIdent auxFunName):ident.{$levels,*} $binders:bracketedBinder* :
         Expr := $body:term)
   else
-    `(private def $(mkIdent auxFunName):ident.{$levels,*} $binders:bracketedBinder* :
+    `(@[no_expose] def $(mkIdent auxFunName):ident.{$levels,*} $binders:bracketedBinder* :
         Expr := $body:term)
 
 /-- Create all the auxiliary functions using `mkAuxFunction` for the (mutual) inductive type(s).

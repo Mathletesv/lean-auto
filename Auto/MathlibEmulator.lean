@@ -1,3 +1,5 @@
-import Auto.MathlibEmulator.ToLevel
-import Auto.MathlibEmulator.DeriveToExpr
-import Auto.MathlibEmulator.ToExpr
+module
+
+public import Auto.MathlibEmulator.ToLevel
+public import Auto.MathlibEmulator.DeriveToExpr
+public import Auto.MathlibEmulator.ToExpr
