@@ -40,12 +40,6 @@ Type **"auto 👍"** to test whether auto is set up.
     * To use the advanced ``zipperposition`` portfolio mode, use ``set_option auto.tptp.solver.name zeport-lams`` or ``set_option auto.tptp.solver.name zeport-fo``. You need to obtain the source code of ``zipperposition`` and make sure that ``auto.tptp.zeport.path`` points to the correct python script that runs ``zipperposition`` with the portfolio mode, presumably in the ``portfolio`` folder of the source code of zipperposition.
   * Proof search by native prover. Assume your native prover is a `lean` repository that has `lean-auto` as dependency. To enable proof search by native prover, use ``set_option auto.native true``, and use ``attribute [rebind Auto.Native.solverFunc] <solve_interface>`` to bind `lean-auto` to the interface of the solver, which should be a Lean constant of type ``Array Lemma → Array Lemma → MetaM Expr``.
 
-## Lean's Module System
-``lean-auto`` now uses [Lean's module system](https://lean-lang.org/doc/reference/latest/), so it can be used both from ordinary Lean files and from files that begin with ``module``.
-* To *invoke* ``auto`` (or any other command/tactic exported by ``lean-auto``) from a ``module``, a plain ``import Auto.Tactic`` is all that is needed. See ``Test/ModuleSystem.lean``.
-* To write a *metaprogram* that refers to ``lean-auto``'s own declarations — e.g. a native prover that calls ``Auto.runAuto`` — a ``module`` additionally needs ``meta import Auto.Tactic``, because metaprograms may only refer to declarations that are available for compile-time execution. See ``Test/ModuleSystemDownstream.lean``.
-* Files that do not opt into the module system are unaffected: a plain ``import Auto.Tactic`` keeps working exactly as before.
-
 ## Installing Lean-auto
 * ``z3`` version >= 4.12.2. Lower versions may not be able to deal with smt-lib 2.6 string escape sequence.
 * ``cvc5``
