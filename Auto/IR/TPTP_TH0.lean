@@ -127,7 +127,7 @@ where
   expandQuantBody (s : LamSort) (t : LamTerm) : LamTerm :=
     match t with
     | .lam _ body => body
-    | _ => (LamTerm.app s t (.bvar 0)).headBeta
+    | _ => (LamTerm.app_bvarLift_bvar0 s t).headBeta
   transQuantApp (quant body : LamTerm) (lctx : Nat) : Except String String :=
     let info : Except String (String × LamSort) :=
       match quant with
