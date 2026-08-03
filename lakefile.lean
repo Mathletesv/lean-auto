@@ -77,4 +77,6 @@ lean_lib «Auto» {
   extraDepTargets := #[``zipperpositionAutoDownload]
 }
 
-require «mathlib» from git "https://github.com/leanprover-community/mathlib4" @ "v4.32.0"
+require «proofwidgets» from git "https://github.com/leanprover-community/ProofWidgets4" @ "d662197a9ca6f411c5738c45ec0192c786462f5d"
+
+require «mathlib» from git "https://github.com/leanprover-community/mathlib4" @ "v4.32.2"
