@@ -1,8 +1,13 @@
-import Lean
-import Auto.Lib.AbstractMVars
-import Auto.Lib.MessageData
-import Auto.Translation.Assumptions
-import Auto.Translation.Reduction
+module
+
+public import Lean
+public import Auto.Lib.AbstractMVars
+public import Auto.Lib.MessageData
+public import Auto.Translation.Assumptions
+public import Auto.Translation.Reduction
+
+public section
+
 open Lean Meta Elab Tactic
 
 initialize

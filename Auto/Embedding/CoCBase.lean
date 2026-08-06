@@ -1,5 +1,9 @@
-import Lean
-import Auto.Lib.TreeList
+module
+
+public import Lean
+public import Auto.Lib.TreeList
+
+@[expose] public section
 
 namespace Auto.Embedding.CoC
 

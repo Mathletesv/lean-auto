@@ -1,4 +1,9 @@
-import Lean
+module
+
+public import Lean
+
+public section
+
 open Lean
 
 namespace Auto.Debugger

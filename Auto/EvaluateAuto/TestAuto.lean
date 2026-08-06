@@ -1,12 +1,25 @@
-import Lean
-import Std
-import Auto.EvaluateAuto.OS
-import Auto.EvaluateAuto.Result
-import Auto.EvaluateAuto.ConstAnalysis
-import Auto.EvaluateAuto.EnvAnalysis
-import Auto.EvaluateAuto.NameArr
-import Auto.EvaluateAuto.AutoConfig
-import Auto.Tactic
+module
+
+public import Lean
+public meta import Lean
+public import Std
+public meta import Std
+public import Auto.EvaluateAuto.OS
+public meta import Auto.EvaluateAuto.OS
+public import Auto.EvaluateAuto.Result
+public meta import Auto.EvaluateAuto.Result
+public import Auto.EvaluateAuto.ConstAnalysis
+public meta import Auto.EvaluateAuto.ConstAnalysis
+public import Auto.EvaluateAuto.EnvAnalysis
+public meta import Auto.EvaluateAuto.EnvAnalysis
+public import Auto.EvaluateAuto.NameArr
+public meta import Auto.EvaluateAuto.NameArr
+public import Auto.EvaluateAuto.AutoConfig
+public meta import Auto.EvaluateAuto.AutoConfig
+public import Auto.Tactic
+public meta import Auto.Tactic
+
+public meta section
 
 open Lean Auto
 

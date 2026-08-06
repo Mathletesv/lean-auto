@@ -1,9 +1,13 @@
-import Auto.Lib.BoolExtra
-import Auto.Lib.HEqExtra
-import Auto.Lib.NatExtra
-import Auto.Lib.ListExtra
-import Auto.Lib.HList
-import Auto.Lib.BinTree
+module
+
+public import Auto.Lib.BoolExtra
+public import Auto.Lib.HEqExtra
+public import Auto.Lib.NatExtra
+public import Auto.Lib.ListExtra
+public import Auto.Lib.HList
+public import Auto.Lib.BinTree
+
+@[expose] public section
 
 namespace Auto.Embedding
 

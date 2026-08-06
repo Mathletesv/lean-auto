@@ -1,9 +1,20 @@
-import Lean
-import Auto.Translation
-import Auto.Solver.SMT
-import Auto.Solver.TPTP
-import Auto.Solver.Native
-import Auto.LemDB
+module
+
+public import Lean
+public meta import Lean
+public import Auto.Translation
+public meta import Auto.Translation
+public import Auto.Solver.SMT
+public meta import Auto.Solver.SMT
+public import Auto.Solver.TPTP
+public meta import Auto.Solver.TPTP
+public import Auto.Solver.Native
+public meta import Auto.Solver.Native
+public import Auto.LemDB
+public meta import Auto.LemDB
+
+public meta section
+
 open Lean Elab Tactic
 
 initialize

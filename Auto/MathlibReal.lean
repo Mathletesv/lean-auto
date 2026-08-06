@@ -6,10 +6,13 @@ which are used by Lean-auto to treat reals similarly to the way it handles integ
 Zero and one are handled specially because Lean represents them differently from other naturals.
 sciVal is used to handle floats that are converted into reals.
 -/
-import Lean
-import Mathlib.Data.Real.Basic
-import Auto.Translation.LamReif
-import Auto.Translation.LamUtils
+
+module
+
+public import Lean
+public import Mathlib.Data.Real.Basic
+public import Auto.Translation.LamReif
+public import Auto.Translation.LamUtils
 
 namespace Auto.MathlibReal
 

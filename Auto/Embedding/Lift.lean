@@ -1,7 +1,11 @@
-import Auto.Lib.IsomType
-import Auto.Lib.StringExtra
-import Auto.Lib.BoolExtra
-import Auto.Lib.RealType
+module
+
+public import Auto.Lib.IsomType
+public import Auto.Lib.StringExtra
+public import Auto.Lib.BoolExtra
+public import Auto.Lib.RealType
+
+@[expose] public section
 
 namespace Auto.Embedding
 

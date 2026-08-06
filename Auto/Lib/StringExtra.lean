@@ -1,3 +1,7 @@
+module
+
+@[expose] public section
+
 namespace Auto
 
 @[reducible] def String.le (a b : String) : Prop := a = b ∨ a < b

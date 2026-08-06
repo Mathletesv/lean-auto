@@ -1,6 +1,11 @@
-import Lean
-import Auto.Lib.MonadUtils
-import Auto.Lib.MetaExtra
+module
+
+public import Lean
+public import Auto.Lib.MonadUtils
+public import Auto.Lib.MetaExtra
+
+public section
+
 open Lean
 
 namespace Auto.MetaState

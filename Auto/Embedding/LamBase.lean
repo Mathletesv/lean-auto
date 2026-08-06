@@ -1,13 +1,18 @@
-import Lean
-import Auto.Embedding.Lift
-import Auto.Embedding.LCtx
-import Auto.Embedding.LamConstMacro
-import Auto.Lib.ExprExtra
-import Auto.Lib.NatExtra
-import Auto.Lib.IntExtra
-import Auto.Lib.HEqExtra
-import Auto.Lib.ListExtra
-import Auto.MathlibEmulator
+module
+
+public import Lean
+public import Auto.Embedding.Lift
+public import Auto.Embedding.LCtx
+public import Auto.Embedding.LamConstMacro
+public import Auto.Lib.ExprExtra
+public import Auto.Lib.NatExtra
+public import Auto.Lib.IntExtra
+public import Auto.Lib.HEqExtra
+public import Auto.Lib.ListExtra
+-- import Mathlib.Data.Real.Basic
+public import Auto.MathlibEmulator
+
+@[expose] public section
 
 -- Embedding Simply Typed Lambda Calculus into Dependent Type Theory
 -- Simply Typed Lambda Calculus = HOL (without polymorphism)
@@ -3014,7 +3019,7 @@ def LamWF.bvarApps
       conv => enter [2, 3]; rw [tyeq]
       exact .ofBVar _)
 
-private def LamWF.bvarAppsRev_Aux :
+def LamWF.bvarAppsRev_Aux :
   LamWF ltv ⟨pushLCtxs (List.reverse lctx) (pushLCtx ty lctx'), LamTerm.bvar (List.length lctx), ty⟩ := by
   have tyeq : ty = pushLCtxs lctx.reverse (pushLCtx ty lctx') lctx.length := by
     rw [pushLCtxs_ge] <;> rw [List.length_reverse]

@@ -1,5 +1,10 @@
-import Lean
-import Auto.Lib.MonadUtils
+module
+
+public import Lean
+public import Auto.Lib.MonadUtils
+
+public section
+
 open Lean
 
 initialize

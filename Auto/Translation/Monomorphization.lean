@@ -1,15 +1,20 @@
-import Lean
-import Auto.Embedding.Lift
-import Auto.Translation.Assumptions
-import Auto.Translation.ReifM
-import Auto.Translation.Inhabitation
-import Auto.Lib.LevelExtra
-import Auto.Lib.ExprExtra
-import Auto.Lib.MonadUtils
-import Auto.Lib.Containers
-import Auto.Lib.MetaState
-import Auto.Lib.MetaExtra
-import Auto.Translation.SMTAttributes
+module
+
+public import Lean
+public import Auto.Embedding.Lift
+public import Auto.Translation.Assumptions
+public import Auto.Translation.ReifM
+public import Auto.Translation.Inhabitation
+public import Auto.Lib.LevelExtra
+public import Auto.Lib.ExprExtra
+public import Auto.Lib.MonadUtils
+public import Auto.Lib.Containers
+public import Auto.Lib.MetaState
+public import Auto.Lib.MetaExtra
+public import Auto.Translation.SMTAttributes
+
+public section
+
 open Lean
 
 initialize
@@ -201,7 +206,7 @@ structure ConstInst where
 
 def ConstInst.fingerPrint (ci : ConstInst) := ci.head.fingerPrint
 
-private def ConstInst.toMessageDataAux (ci : ConstInst) : MessageData :=
+def ConstInst.toMessageDataAux (ci : ConstInst) : MessageData :=
   let nArgsIdx := ci.argsIdx.size
   match nArgsIdx with
   | 0 => m!""

@@ -1,5 +1,10 @@
-import Lean
-import Auto.Lib.RealType
+module
+
+public import Lean
+public meta import Lean
+public import Auto.Lib.RealType
+
+public meta section
 
 /-!
 # `mkConstFamily` — macro for the constant-family scaffolding in `LamBase.lean`.

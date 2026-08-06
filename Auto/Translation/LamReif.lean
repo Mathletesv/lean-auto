@@ -1,13 +1,18 @@
-import Lean
-import Auto.Lib.MonadUtils
-import Auto.Lib.ExprExtra
-import Auto.Lib.MetaExtra
-import Auto.Translation.ReifM
-import Auto.Translation.LamUtils
-import Auto.Translation.SMTAttributes
-import Auto.MathlibEmulator
-import Auto.Embedding.LamChecker
-import Auto.Embedding.LamInhReasoning
+module
+
+public import Lean
+public import Auto.Lib.MonadUtils
+public import Auto.Lib.ExprExtra
+public import Auto.Lib.MetaExtra
+public import Auto.Translation.ReifM
+public import Auto.Translation.LamUtils
+public import Auto.Translation.SMTAttributes
+public import Auto.MathlibEmulator
+public import Auto.Embedding.LamChecker
+public import Auto.Embedding.LamInhReasoning
+
+public section
+
 open Lean
 
 initialize
@@ -19,7 +24,17 @@ initialize
   registerTraceClass `auto.lamReif.prep.def
   registerTraceClass `auto.lamReif.prep.printResult
 
+register_option auto.lamReif.ignoreUnusable : Bool := {
+  defValue := false
+  descr := "If true, silently ignores facts, inhabitations, and IndVals that cannot be reified"
+}
+
 namespace Auto.LamReif
+
+/-- Returns true iff the input exception is an error that starts with: "Auto.LamReif" -/
+def isLamReifException : Exception → BaseIO Bool
+  | Exception.error _ msg => return ((← msg.toString).startsWith "Auto.LamReif")
+  | _ => return false
 
 open Embedding.Lam
 
@@ -1557,21 +1572,37 @@ def reifTermCheckType (e : Expr) : ReifM (LamSort × LamTerm) := do
   return (s, t)
 
 /-- Return the positions of the reified and `resolveImport`-ed facts within the `validTable` -/
-def reifFacts (facts : Array UMonoFact) : ReifM (Array LamTerm) :=
-  facts.mapM (fun ⟨proof, ty, deriv⟩ => do
-    let (s, lamty) ← reifTermCheckType ty
-    if s != .base .prop then
-      throwError "{decl_name%} :: Fact {lamty} is not of type `prop`"
-    trace[auto.lamReif.printResult] "Successfully reified proof of {← Meta.zetaReduce ty} to λterm `{lamty}`"
-    newAssertion proof deriv lamty
-    return lamty)
+def reifFacts (facts : Array UMonoFact) : ReifM (Array LamTerm) := do
+  let mut ret := #[]
+  for ⟨proof, ty, deriv⟩ in facts do
+    try
+      let (s, lamty) ← reifTermCheckType ty
+      if s != .base .prop then
+        throwError "{decl_name%} :: Fact {lamty} is not of type `prop`"
+      trace[auto.lamReif.printResult] "Successfully reified proof of {← Meta.zetaReduce ty} to λterm `{lamty}`"
+      newAssertion proof deriv lamty
+      ret := ret.push lamty
+    catch e =>
+      if auto.lamReif.ignoreUnusable.get (← getOptions) && (← isLamReifException e) then
+        trace[auto.lamReif.printResult] "{decl_name%} :: Failed to reify {ty}. Error: {e.toMessageData}"
+      else
+        throw e
+  return ret
 
-def reifInhabitations (inhs : Array UMonoFact) : ReifM (Array LamSort) :=
-  inhs.mapM (fun ⟨inhTy, ty, deriv⟩ => do
-    let s ← reifType ty
-    newInhabitation inhTy deriv s
-    trace[auto.lamReif.printResult] "Successfully reified inhabitation proof of {ty} to λsort `{s}`"
-    return s)
+def reifInhabitations (inhs : Array UMonoFact) : ReifM (Array LamSort) := do
+  let mut ret := #[]
+  for ⟨inhTy, ty, deriv⟩ in inhs do
+    try
+      let s ← reifType ty
+      newInhabitation inhTy deriv s
+      trace[auto.lamReif.printResult] "Successfully reified inhabitation proof of {ty} to λsort `{s}`"
+      ret := ret.push s
+    catch e =>
+      if auto.lamReif.ignoreUnusable.get (← getOptions) && (← isLamReifException e) then
+        trace[auto.lamReif.printResult] "{decl_name%} :: Failed to reify inhabitation {ty}. Error: {e.toMessageData}"
+      else
+        throw e
+  return ret
 
 def reifInd (ind : SimpleIndVal) : ReifM (Option IndInfo) := do
   let ⟨name, type, ctors, projs⟩ := ind
@@ -1603,9 +1634,15 @@ def reifMutInd (mind : Array SimpleIndVal) : ReifM (Option MutualIndInfo) := do
 def reifMutInds (minds : Array (Array SimpleIndVal)) : ReifM (Array MutualIndInfo) := do
   let mut ret := #[]
   for mind in minds do
-    let .some mi ← reifMutInd mind
-      | continue
-    ret := ret.push mi
+    try
+      let .some mi ← reifMutInd mind
+        | continue
+      ret := ret.push mi
+    catch e =>
+      if auto.lamReif.ignoreUnusable.get (← getOptions) && (← isLamReifException e) then
+        trace[auto.lamReif.printResult] "{decl_name%} :: Failed to reify mutually inductive types {mind.map (·.name)}. Error: {e.toMessageData}"
+      else
+        throw e
   return ret
 
 partial def collectDerivFor (re : REntry) : ReifM DTr := do

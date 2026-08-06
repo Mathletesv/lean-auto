@@ -4,6 +4,10 @@ This typeclass is used to provide support for Mathlib Reals only if MathlibReal.
 to optionally pass in the Mathlib instance of Real, which is necessary in `LamBaseSort.interp`.
 It ensures that all of the necessary typeclasses are present and uses them in the embedding.
 -/
+module
+
+@[expose] public section
+
 namespace Auto
 
 class RealTy (α : Type) extends

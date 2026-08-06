@@ -1,4 +1,8 @@
-import Auto.Embedding.LamBase
+module
+
+public import Auto.Embedding.LamBase
+
+@[expose] public section
 
 namespace Auto.Embedding.Lam
 
@@ -468,7 +472,7 @@ theorem LamTerm.maxEVarSucc_bvarLower?
   (heq : LamTerm.bvarLower? t = .some t') : t'.maxEVarSucc = t.maxEVarSucc :=
   LamTerm.maxEVarSucc_bvarLowersIdx? heq
 
-private def getILSortString : LamBaseTerm → String
+def getILSortString : LamBaseTerm → String
 | .eq s      => s!"{s}"
 | .forallE s => s!"{s}"
 | .existE s  => s!"{s}"

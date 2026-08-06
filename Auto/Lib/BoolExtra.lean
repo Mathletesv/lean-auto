@@ -1,3 +1,7 @@
+module
+
+@[expose] public section
+
 namespace Auto
 
 theorem Bool.beq_true {a : Bool} : (a == true) = a := by

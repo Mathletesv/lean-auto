@@ -1,4 +1,8 @@
-import Auto.Embedding.LamConv
+module
+
+public import Auto.Embedding.LamConv
+
+@[expose] public section
 
 namespace Auto.Embedding.Lam
 

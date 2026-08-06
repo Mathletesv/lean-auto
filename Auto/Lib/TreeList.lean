@@ -1,13 +1,17 @@
-import Lean
-import Auto.MathlibEmulator
-import Auto.Lib.BoolExtra
-import Auto.Lib.NatExtra
-import Auto.Lib.OptionExtra
-import Auto.Lib.Containers
-import Auto.Lib.Pos
-import Auto.Lib.Bin
+module
+
+public import Lean
+public import Auto.MathlibEmulator
+public import Auto.Lib.BoolExtra
+public import Auto.Lib.NatExtra
+public import Auto.Lib.OptionExtra
+public import Auto.Lib.Containers
+public import Auto.Lib.Pos
+public import Auto.Lib.Bin
 -- Make sure that `Lean.toExpr Nat` is overriden
-import Auto.Lib.ToExprExtra
+public import Auto.Lib.ToExprExtra
+
+@[expose] public section
 
 /-
   Polymorphic complete binary tree

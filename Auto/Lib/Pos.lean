@@ -1,4 +1,8 @@
-import Auto.MathlibEmulator
+module
+
+public import Auto.MathlibEmulator
+
+@[expose] public section
 
 namespace Auto
 

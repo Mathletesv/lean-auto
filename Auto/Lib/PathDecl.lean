@@ -1,5 +1,10 @@
-import Lean
-import Auto.Lib.PathHook
+module
+
+public import Lean
+public import Auto.Lib.PathHook
+
+public section
+
 open Lean
 
 namespace Auto

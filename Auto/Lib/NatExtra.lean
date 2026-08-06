@@ -1,4 +1,8 @@
-import Auto.Lib.BoolExtra
+module
+
+public import Auto.Lib.BoolExtra
+
+@[expose] public section
 
 namespace Auto
 
@@ -247,12 +251,12 @@ theorem Nat.le_pow (h : b ≥ 2) : a < b ^ a := by
 
   theorem Nat.ones_xor (n a : Nat) (h : a < 2 ^ n) : (2 ^ n - 1) ^^^ a = 2 ^ n - 1 - a := by
     apply Nat.eq_of_testBit_eq; intro i
-    rw [xor_def, Nat.xor, Nat.testBit_bitwise (f:=bne) rfl]
+    rw [Nat.testBit_xor]
     have texp : 2 ^ (i + 1) = 2 ^ i + 2 ^ i := by rw [Nat.pow_add, show (2 ^ 1 = 2) by rfl, Nat.mul_two]
     cases @Nat.dichotomy n i
     case inl hl =>
       rw [Nat.ones_testBit_false_of_ge _ _ hl]
-      rw [show (∀ b, (false != b) = b) by (intro b; simp)]
+      rw [show (∀ b, (false ^^ b) = b) by (intro b; simp)]
       have ple : 2 ^ n ≤ 2 ^ i := Nat.pow_le_pow_right (Nat.le_succ_of_le .refl) hl
       have lf : Nat.testBit a i = false := by
         rw [Nat.testBit_false_iff]
@@ -270,7 +274,7 @@ theorem Nat.le_pow (h : b ≥ 2) : a < b ^ a := by
       rw [lf, rf]
     case inr hl =>
       rw [Nat.ones_testBit_true_of_lt _ _ hl]
-      rw [show (∀ b, (true != b) = !b) by (intro b; simp)]
+      rw [show (∀ b, (true ^^ b) = !b) by (intro b; simp)]
       generalize hk : a % 2 ^ (i + 1) = k
       have kl : k < 2 ^ (i + 1) := by rw [← hk]; apply Nat.mod_lt; apply Nat.two_pow_pos
       have tr : (2 ^ n - 1 - a) % 2 ^ (i + 1) = 2 ^ (i + 1) - (k + 1) := by

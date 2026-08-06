@@ -1,5 +1,9 @@
-import Lean
-import Auto.Tactic
+module
+
+public import Lean
+public import Auto.Tactic
+
+public section
 
 open Lean Auto
 
