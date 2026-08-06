@@ -14,6 +14,8 @@ public import Mathlib.Data.Real.Basic
 public import Auto.Translation.LamReif
 public import Auto.Translation.LamUtils
 
+@[expose] public section
+
 namespace Auto.MathlibReal
 
 open Lean Auto Auto.Embedding.Lam
