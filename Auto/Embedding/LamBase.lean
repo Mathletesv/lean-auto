@@ -3201,13 +3201,13 @@ theorem LamWF.interp_bvarAppsRev
   case cons lty lctxTy lterm lctxTerm IH =>
     dsimp [LamSort.mkFuncs_cons] at wft;
     rw [List.reverse_cons, pushLCtxs_append_singleton] at wft
-    dsimp [LamTerm.bvarAppsRev] at wfAp
+    dsimp [LamTerm.bvarAppsRev] at wfAp ⊢
     rw [List.reverse_cons, pushLCtxs_append_singleton] at wfAp
     rw [interp_substLCtxTerm_rec (by rw [List.reverse_cons])
       (pushLCtxsDep_substxs _ _ _ List.reverse_cons HList.reverse_cons)]
     rw [interp_substLCtxTerm_rec
       (pushLCtxs_append_singleton _ _ _) (pushLCtxsDep_append_singleton _ _ _)]
-    rw [LamWF.interp_substWF (t:=t.bvarAppsRev (lty :: lctxTy)) (wf':=wfAp)]
+    rw [LamWF.interp_substWF (wf':=wfAp)]
     apply IH (LamWF.ofApp _ wft LamWF.bvarAppsRev_Aux)
     simp only[interp]; apply HEq.trans (b:=LamSort.curry valPre lterm) <;> try rfl
     case h₁ =>

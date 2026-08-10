@@ -102,7 +102,7 @@ namespace BVLems
       have hpn : 2 ^ n > 1 := Nat.pow_le_pow_right Nat.zero_lt_two hn
       have hin : 2 ^ n ≤ 2 ^ i := Nat.pow_le_pow_right Nat.zero_lt_two h
       rw [BitVec.sshiftRight_eq_of_msb_true hmsb]
-      rw [BitVec.toNat_not, BitVec.toNat_neg, BitVec.toNat_ofNat]
+      rw [BitVec.toNat_not, BitVec.neg_eq, BitVec.toNat_neg, BitVec.toNat_ofNat]
       rw [Nat.one_mod_eq_one.mpr (Nat.ne_of_gt hpn)]
       have hsa : 2 ^ n - 1 - a.toNat < 2 ^ i := by
         apply Nat.sub_lt_of_lt; apply Nat.lt_iff_add_one_le.mpr

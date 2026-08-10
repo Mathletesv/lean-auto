@@ -14,6 +14,7 @@ instance : ToString TransparencyMode where
   | .default   => "default"
   | .reducible => "reducible"
   | .instances => "instances"
+  | .implicit  => "implicit"
   | .none      => "none"
 
 instance : Lean.KVMap.Value TransparencyMode where
@@ -23,6 +24,7 @@ instance : Lean.KVMap.Value TransparencyMode where
   | "default"   => some .default
   | "reducible" => some .reducible
   | "instances" => some .instances
+  | "implicit"  => some .implicit
   | "none"      => some .none
   | _           => none
 
