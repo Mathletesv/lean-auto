@@ -1,12 +1,13 @@
-import Lean
-import Auto.Parser.LexInit
-import Auto.Parser.SMTSexp
+module
+
+public import Lean
+public import Auto.Parser.LexInit
+public import Auto.Parser.SMTSexp
+
+public section
+
 open Lean
 
-/-
-  **TODO:** Review code
-  This file is taken from the `hammer` branch
--/
 namespace Auto
 
 namespace Parser.SMTTerm

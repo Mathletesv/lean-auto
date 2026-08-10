@@ -1,4 +1,8 @@
-import Auto.Embedding.LamSystem
+module
+
+public import Auto.Embedding.LamSystem
+
+@[expose] public section
 
 namespace Auto.Embedding.Lam
 

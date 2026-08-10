@@ -1,7 +1,15 @@
-import Auto.Tactic
-import Auto.EvaluateAuto.OS
-import Auto.EvaluateAuto.ConstAnalysis
-import Auto.EvaluateAuto.NameArr
+module
+
+public import Auto.Tactic
+public meta import Auto.Tactic
+public import Auto.EvaluateAuto.OS
+public meta import Auto.EvaluateAuto.OS
+public import Auto.EvaluateAuto.ConstAnalysis
+public meta import Auto.EvaluateAuto.ConstAnalysis
+public import Auto.EvaluateAuto.NameArr
+public meta import Auto.EvaluateAuto.NameArr
+
+public meta section
 
 open Lean Auto
 

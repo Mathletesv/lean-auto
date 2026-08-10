@@ -1,6 +1,11 @@
-import Lean
-import Auto.Translation.Assumptions
-import Auto.Lib.ExprExtra
+module
+
+public import Lean
+public import Auto.Translation.Assumptions
+public import Auto.Lib.ExprExtra
+
+public section
+
 open Lean
 
 namespace Auto.Inhabitation

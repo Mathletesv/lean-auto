@@ -1,3 +1,7 @@
+module
+
+@[expose] public section
+
 namespace Auto
 
 @[always_inline, inline] def Option.allp (p : α → Prop) : Option α → Prop

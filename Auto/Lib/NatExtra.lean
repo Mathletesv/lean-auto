@@ -1,9 +1,13 @@
-import Auto.Lib.BoolExtra
+module
+
+public import Auto.Lib.BoolExtra
+
+@[expose] public section
 
 namespace Auto
 
 /-- A version of `Nat.beq_refl` that reduces to `Eq.refl` -/
-def Nat.beq_refl' : (a : Nat) → (a.beq a) = true
+theorem Nat.beq_refl' : (a : Nat) → (a.beq a) = true
 | 0 => rfl
 | n + 1 => Nat.beq_refl' n
 
@@ -22,8 +26,8 @@ theorem Nat.ble_eq_false_of_lt (n : Nat) : pos < n → Nat.ble n pos = false := 
 
 theorem Nat.ble_eq_false_eq_lt (n : Nat) : (pos < n) = (Nat.ble n pos = false) := by
   apply propext; apply Iff.intro
-  case a.mp => apply Nat.ble_eq_false_of_lt
-  case a.mpr => apply Nat.lt_of_ble_eq_false
+  case mp => apply Nat.ble_eq_false_of_lt
+  case mpr => apply Nat.lt_of_ble_eq_false
 
 theorem Nat.beq_eq_false_of_ne {m n : Nat} (H : m ≠ n) : Nat.beq m n = false := by
   cases h : Nat.beq m n
@@ -247,12 +251,12 @@ theorem Nat.le_pow (h : b ≥ 2) : a < b ^ a := by
 
   theorem Nat.ones_xor (n a : Nat) (h : a < 2 ^ n) : (2 ^ n - 1) ^^^ a = 2 ^ n - 1 - a := by
     apply Nat.eq_of_testBit_eq; intro i
-    rw [xor_def, Nat.xor, Nat.testBit_bitwise (f:=bne) rfl]
+    rw [Nat.testBit_xor]
     have texp : 2 ^ (i + 1) = 2 ^ i + 2 ^ i := by rw [Nat.pow_add, show (2 ^ 1 = 2) by rfl, Nat.mul_two]
     cases @Nat.dichotomy n i
     case inl hl =>
       rw [Nat.ones_testBit_false_of_ge _ _ hl]
-      rw [show (∀ b, (false != b) = b) by (intro b; simp)]
+      rw [show (∀ b, (false ^^ b) = b) by (intro b; simp)]
       have ple : 2 ^ n ≤ 2 ^ i := Nat.pow_le_pow_right (Nat.le_succ_of_le .refl) hl
       have lf : Nat.testBit a i = false := by
         rw [Nat.testBit_false_iff]
@@ -270,7 +274,7 @@ theorem Nat.le_pow (h : b ≥ 2) : a < b ^ a := by
       rw [lf, rf]
     case inr hl =>
       rw [Nat.ones_testBit_true_of_lt _ _ hl]
-      rw [show (∀ b, (true != b) = !b) by (intro b; simp)]
+      rw [show (∀ b, (true ^^ b) = !b) by (intro b; simp)]
       generalize hk : a % 2 ^ (i + 1) = k
       have kl : k < 2 ^ (i + 1) := by rw [← hk]; apply Nat.mod_lt; apply Nat.two_pow_pos
       have tr : (2 ^ n - 1 - a) % 2 ^ (i + 1) = 2 ^ (i + 1) - (k + 1) := by

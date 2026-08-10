@@ -1,5 +1,11 @@
-import Lean
-import Auto.Embedding.LamBVarOp
+module
+
+public import Lean
+public import Std.Data.Iterators
+public import Auto.Embedding.LamBVarOp
+
+public section
+
 open Lean
 
 namespace Auto.Parser.TPTP

@@ -1,14 +1,18 @@
-import Lean
-import Auto.Embedding.Lift
-import Auto.Embedding.LCtx
-import Auto.Embedding.LamConstMacro
-import Auto.Lib.ExprExtra
-import Auto.Lib.NatExtra
-import Auto.Lib.IntExtra
-import Auto.Lib.HEqExtra
-import Auto.Lib.ListExtra
+module
+
+public import Lean
+public import Auto.Embedding.Lift
+public import Auto.Embedding.LCtx
+public import Auto.Embedding.LamConstMacro
+public import Auto.Lib.ExprExtra
+public import Auto.Lib.NatExtra
+public import Auto.Lib.IntExtra
+public import Auto.Lib.HEqExtra
+public import Auto.Lib.ListExtra
 -- import Mathlib.Data.Real.Basic
-import Auto.MathlibEmulator
+public import Auto.MathlibEmulator
+
+@[expose] public section
 
 -- Embedding Simply Typed Lambda Calculus into Dependent Type Theory
 -- Simply Typed Lambda Calculus = HOL (without polymorphism)
@@ -543,10 +547,10 @@ def BVAOp.beq : BVAOp → BVAOp → Bool
 instance : BEq BVAOp where
   beq := BVAOp.beq
 
-def BVAOp.beq_refl {a : BVAOp} : (a.beq a) = true := by
+theorem BVAOp.beq_refl {a : BVAOp} : (a.beq a) = true := by
   cases a <;> rfl
 
-def BVAOp.eq_of_beq_eq_true {a₁ a₂ : BVAOp} (H : a₁.beq a₂) : a₁ = a₂ := by
+theorem BVAOp.eq_of_beq_eq_true {a₁ a₂ : BVAOp} (H : a₁.beq a₂) : a₁ = a₂ := by
   cases a₁ <;> cases a₂ <;> first | contradiction | rfl
 
 instance : LawfulBEq BVAOp where
@@ -597,10 +601,10 @@ def BVCmp.beq : BVCmp → BVCmp → Bool
 instance : BEq BVCmp where
   beq := BVCmp.beq
 
-def BVCmp.beq_refl {c : BVCmp} : (c.beq c) = true := by
+theorem BVCmp.beq_refl {c : BVCmp} : (c.beq c) = true := by
   cases c <;> rfl
 
-def BVCmp.eq_of_beq_eq_true {c₁ c₂ : BVCmp} (H : c₁.beq c₂) : c₁ = c₂ := by
+theorem BVCmp.eq_of_beq_eq_true {c₁ c₂ : BVCmp} (H : c₁.beq c₂) : c₁ = c₂ := by
   cases c₁ <;> cases c₂ <;> first | contradiction | rfl
 
 instance : LawfulBEq BVCmp where
@@ -650,10 +654,10 @@ def BVShOp.beq : BVShOp → BVShOp → Bool
 instance : BEq BVShOp where
   beq := BVShOp.beq
 
-def BVShOp.beq_refl {s : BVShOp} : (s.beq s) = true := by
+theorem BVShOp.beq_refl {s : BVShOp} : (s.beq s) = true := by
   cases s <;> rfl
 
-def BVShOp.eq_of_beq_eq_true {s₁ s₂ : BVShOp} (H : s₁.beq s₂) : s₁ = s₂ := by
+theorem BVShOp.eq_of_beq_eq_true {s₁ s₂ : BVShOp} (H : s₁.beq s₂) : s₁ = s₂ := by
   cases s₁ <;> cases s₂ <;> first | contradiction | rfl
 
 instance : LawfulBEq BVShOp where
@@ -835,10 +839,10 @@ instance : BEq OtherConst where
 
 theorem OtherConst.beq_def {x y : OtherConst} : (x == y) = x.beq y := rfl
 
-def OtherConst.beq_refl {o : OtherConst} : (o.beq o) = true := by
+theorem OtherConst.beq_refl {o : OtherConst} : (o.beq o) = true := by
   cases o <;> unfold OtherConst.beq <;> simp [LamSort.beq_refl]
 
-def OtherConst.eq_of_beq_eq_true {o₁ o₂ : OtherConst} (H : o₁.beq o₂) : o₁ = o₂ := by
+theorem OtherConst.eq_of_beq_eq_true {o₁ o₂ : OtherConst} (H : o₁.beq o₂) : o₁ = o₂ := by
   cases o₁ <;> cases o₂ <;> dsimp [beq] at H <;>
     rw [Bool.and_eq_true] at H <;> rw [Bool.and_eq_true] at H <;>
     try rw [LawfulBEq.eq_of_beq H.left.left]
@@ -855,11 +859,11 @@ def OtherConst.lamCheck : OtherConst → LamSort
 def OtherConst.interp (tyVal : Nat → Type u) : (o : OtherConst) → o.lamCheck.interp tyVal
 | .smtAttr1T _ sattr sterm => fun (_ : sattr.interp tyVal) (term : sterm.interp tyVal) => term
 
-def OtherConst.interp_equiv (tyVal : Nat → Type u) (ocwf : LamWF p s) :
+theorem OtherConst.interp_equiv (tyVal : Nat → Type u) (ocwf : LamWF p s) :
   HEq (LamWF.interp tyVal ocwf) (interp tyVal p) := by
   cases ocwf <;> rfl
 
-def OtherConst.LamWF.unique {o : OtherConst} {s₁ s₂ : LamSort}
+theorem OtherConst.LamWF.unique {o : OtherConst} {s₁ s₂ : LamSort}
   (ocwf₁ : LamWF o s₁) (ocwf₂ : LamWF o s₂) : s₁ = s₂ ∧ HEq ocwf₁ ocwf₂ := by
   cases ocwf₁ <;> cases ocwf₂ <;> trivial
 
@@ -869,10 +873,10 @@ theorem OtherConst.LamWF.interp_lvalIrrelevance
   HEq (ocwf₁.interp tyVal₁) (ocwf₂.interp tyVal₂) := by
   cases HBeq; cases hTyVal; rcases OtherConst.LamWF.unique ocwf₁ ocwf₂ with ⟨⟨⟩, ⟨⟩⟩; rfl
 
-def OtherConst.lamWF_complete (wf : LamWF sc s) : LamWF.ofOtherConst sc = ⟨s, wf⟩ := by
+theorem OtherConst.lamWF_complete (wf : LamWF sc s) : LamWF.ofOtherConst sc = ⟨s, wf⟩ := by
   cases wf <;> rfl
 
-def OtherConst.lamCheck_of_LamWF (H : LamWF sc s) : sc.lamCheck = s := by
+theorem OtherConst.lamCheck_of_LamWF (H : LamWF sc s) : sc.lamCheck = s := by
   cases H <;> rfl
 
 def OtherConst.LamWF.ofCheck (H : sc.lamCheck = s) : LamWF sc s := by
@@ -1123,7 +1127,7 @@ def LamBaseTerm.beq : LamBaseTerm → LamBaseTerm → Bool
 instance : BEq LamBaseTerm where
   beq := LamBaseTerm.beq
 
-def LamBaseTerm.beq_refl {b : LamBaseTerm} : (b.beq b) = true := by
+theorem LamBaseTerm.beq_refl {b : LamBaseTerm} : (b.beq b) = true := by
   cases b <;> first | rfl | apply LamSort.beq_refl | apply Nat.beq_refl | skip
   case pcst pc => apply BEq.rfl (α := PropConst)
   case bcst bc => apply BEq.rfl (α := BoolConst)
@@ -1133,16 +1137,16 @@ def LamBaseTerm.beq_refl {b : LamBaseTerm} : (b.beq b) = true := by
   case bvcst s => apply BEq.rfl (α := BitVecConst)
   case ocst o => apply BEq.rfl (α := OtherConst)
 
-def LamBaseTerm.eq_of_beq_eq_true {b₁ b₂ : LamBaseTerm} (H : b₁.beq b₂) : b₁ = b₂ := by
+theorem LamBaseTerm.eq_of_beq_eq_true {b₁ b₂ : LamBaseTerm} (H : b₁.beq b₂) : b₁ = b₂ := by
   cases b₁ <;> cases b₂ <;> (first | contradiction | rfl | apply congrArg) <;>
     (try apply LamSort.eq_of_beq_eq_true H) <;> (try apply Nat.eq_of_beq_eq_true H)
-  case pcst.pcst.h pc₁ pc₂ => apply LawfulBEq.eq_of_beq (α := PropConst) H
-  case bcst.bcst.h bc₁ bc₂ => apply LawfulBEq.eq_of_beq (α := BoolConst) H
-  case ncst.ncst.h nc₁ nc₂ => apply LawfulBEq.eq_of_beq (α := NatConst) H
-  case icst.icst.h n₁ n₂ => apply LawfulBEq.eq_of_beq (α := IntConst) H
-  case scst.scst.h s₁ s₂ => apply LawfulBEq.eq_of_beq (α := StringConst) H
-  case bvcst.bvcst.h v₁ v₂ => apply LawfulBEq.eq_of_beq (α := BitVecConst) H
-  case ocst.ocst.h o₁ o₂ => apply LawfulBEq.eq_of_beq (α := OtherConst) H
+  case pcst.pcst pc₁ pc₂ => apply LawfulBEq.eq_of_beq (α := PropConst) H
+  case bcst.bcst bc₁ bc₂ => apply LawfulBEq.eq_of_beq (α := BoolConst) H
+  case ncst.ncst nc₁ nc₂ => apply LawfulBEq.eq_of_beq (α := NatConst) H
+  case icst.icst n₁ n₂ => apply LawfulBEq.eq_of_beq (α := IntConst) H
+  case scst.scst s₁ s₂ => apply LawfulBEq.eq_of_beq (α := StringConst) H
+  case bvcst.bvcst v₁ v₂ => apply LawfulBEq.eq_of_beq (α := BitVecConst) H
+  case ocst.ocst o₁ o₂ => apply LawfulBEq.eq_of_beq (α := OtherConst) H
 
 instance : LawfulBEq LamBaseTerm where
   eq_of_beq := LamBaseTerm.eq_of_beq_eq_true
@@ -1216,7 +1220,7 @@ inductive LamBaseTerm.LamWF (ltv : LamTyVal) : LamBaseTerm → LamSort → Type
   | ofExistE s   : LamWF ltv (.existE s) (.func (.func s (.base .prop)) (.base .prop))
   | ofIte s      : LamWF ltv (.ite s) (.func (.base .prop) (.func s (.func s s)))
 
-def LamBaseTerm.LamWF.unique {ltv : LamTyVal} {b : LamBaseTerm} {s₁ s₂ : LamSort}
+theorem LamBaseTerm.LamWF.unique {ltv : LamTyVal} {b : LamBaseTerm} {s₁ s₂ : LamSort}
   (lbwf₁ : LamWF ltv b s₁) (lbwf₂ : LamWF ltv b s₂) : s₁ = s₂ ∧ HEq lbwf₁ lbwf₂ := by
   cases lbwf₁ <;> cases lbwf₂ <;> try trivial
   case ofPcst.ofPcst pc wf₁ wf₂ =>
@@ -1357,7 +1361,7 @@ def LamBaseTerm.LamWF.ofLamBaseTerm (ltv : LamTyVal) : (b : LamBaseTerm) → (s 
 | .existE s   => ⟨.func (.func _ (.base .prop)) (.base .prop), .ofExistE s⟩
 | .ite s      => ⟨.func (.base .prop) (.func _ (.func _ _)), .ofIte s⟩
 
-def LamBaseTerm.lamWF_complete (wf : LamWF ltv b s) : LamWF.ofLamBaseTerm ltv b = ⟨s, wf⟩ := by
+theorem LamBaseTerm.lamWF_complete (wf : LamWF ltv b s) : LamWF.ofLamBaseTerm ltv b = ⟨s, wf⟩ := by
   cases wf <;> try rfl
   case ofPcst pc wf => dsimp [LamWF.ofLamBaseTerm]; rw [PropConst.lamWF_complete wf]
   case ofBcst bc wf => dsimp [LamWF.ofLamBaseTerm]; rw [BoolConst.lamWF_complete wf]
@@ -1367,7 +1371,7 @@ def LamBaseTerm.lamWF_complete (wf : LamWF ltv b s) : LamWF.ofLamBaseTerm ltv b 
   case ofBvcst bc wf => dsimp [LamWF.ofLamBaseTerm]; rw [BitVecConst.lamWF_complete wf]
   case ofOcst oc wf => dsimp [LamWF.ofLamBaseTerm]; rw [OtherConst.lamWF_complete wf]
 
-def LamBaseTerm.lamCheck_of_LamWF (H : LamWF ltv b s) : b.lamCheck ltv = s := by
+theorem LamBaseTerm.lamCheck_of_LamWF (H : LamWF ltv b s) : b.lamCheck ltv = s := by
   cases H <;> try rfl
   case ofPcst bc wf => apply PropConst.lamCheck_of_LamWF wf
   case ofBcst bc wf => apply BoolConst.lamCheck_of_LamWF wf
@@ -1379,13 +1383,13 @@ def LamBaseTerm.lamCheck_of_LamWF (H : LamWF ltv b s) : b.lamCheck ltv = s := by
 
 def LamBaseTerm.LamWF.ofCheck (H : b.lamCheck ltv = s) : LamWF ltv b s := by
   cases H; cases b <;> constructor
-  case refl.pcst.pcwf => apply PropConst.LamWF.ofCheck; rfl
-  case refl.bcst.bcwf => apply BoolConst.LamWF.ofCheck; rfl
-  case refl.ncst.ncwf => apply NatConst.LamWF.ofCheck; rfl
-  case refl.icst.icwf => apply IntConst.LamWF.ofCheck; rfl
-  case refl.scst.scwf => apply StringConst.LamWF.ofCheck; rfl
-  case refl.bvcst.bvcwf => apply BitVecConst.LamWF.ofCheck; rfl
-  case refl.ocst.ocwf => apply OtherConst.LamWF.ofCheck; rfl
+  case refl.pcst => apply PropConst.LamWF.ofCheck; rfl
+  case refl.bcst => apply BoolConst.LamWF.ofCheck; rfl
+  case refl.ncst => apply NatConst.LamWF.ofCheck; rfl
+  case refl.icst => apply IntConst.LamWF.ofCheck; rfl
+  case refl.scst => apply StringConst.LamWF.ofCheck; rfl
+  case refl.bvcst => apply BitVecConst.LamWF.ofCheck; rfl
+  case refl.ocst => apply OtherConst.LamWF.ofCheck; rfl
 
 structure ILLift (β : Type u) where
   eqL     : EqLift.{u + 1, u} β
@@ -1478,7 +1482,7 @@ theorem LamBaseTerm.LamWF.interp_lvalIrrelevance
           case ofBvcst => apply BitVecConst.LamWF.interp_lvalIrrelevance <;> rfl
           case ofOcst => apply OtherConst.LamWF.interp_lvalIrrelevance <;> rfl
 
-def LamBaseTerm.interp_equiv (lval : LamValuation.{u})
+theorem LamBaseTerm.interp_equiv (lval : LamValuation.{u})
   (lwf : LamWF lval.toLamTyVal b s) :
   HEq (LamWF.interp lval lwf) (interp lval b) := by
   cases lwf <;> try rfl
@@ -2488,7 +2492,7 @@ inductive LamWF (ltv : LamTyVal) : LamJudge → Type
       (HArg : LamWF ltv ⟨lctx, arg, argTy⟩) :
     LamWF ltv ⟨lctx, .app argTy fn arg, resTy⟩
 
-def LamWF.unique {ltv : LamTyVal} :
+theorem LamWF.unique {ltv : LamTyVal} :
   (lwf₁ : LamWF ltv ⟨lctx, t, s₁⟩) → (lwf₂ : LamWF ltv ⟨lctx, t, s₂⟩) →
   s₁ = s₂ ∧ HEq lwf₁ lwf₂
 | .ofAtom _,  .ofAtom _  => And.intro rfl HEq.rfl
@@ -2545,12 +2549,12 @@ def LamWF.eVarIrrelevance
   (eVarIrrelevance hLamVarTy hLamILTy (fun _ H => hirr _ (Nat.le_trans H (Nat.le_max_left _ _))) HFn)
   (eVarIrrelevance hLamVarTy hLamILTy (fun _ H => hirr _ (Nat.le_trans H (Nat.le_max_right _ _))) HArg)
 
-def LamWF.getAtom {ltv : LamTyVal}
+theorem LamWF.getAtom {ltv : LamTyVal}
   (wft : LamWF ltv ⟨lctx, .atom n, s⟩) : ltv.lamVarTy n = s :=
   match wft with
   | .ofAtom _ => rfl
 
-def LamWF.getEtom {ltv : LamTyVal}
+theorem LamWF.getEtom {ltv : LamTyVal}
   (wft : LamWF ltv ⟨lctx, .etom n, s⟩) : ltv.lamEVarTy n = s :=
   match wft with
   | .ofEtom _ => rfl
@@ -2560,7 +2564,7 @@ def LamWF.getBase {ltv : LamTyVal}
   match wft with
   | .ofBase H => H
 
-def LamWF.getBVar {ltv : LamTyVal}
+theorem LamWF.getBVar {ltv : LamTyVal}
   (wft : LamWF ltv ⟨lctx, .bvar n, s⟩) : lctx n = s :=
   match wft with
   | .ofBVar _ => rfl
@@ -2899,7 +2903,7 @@ def LamWF.bvarApps
       conv => enter [2, 3]; rw [tyeq]
       exact .ofBVar _)
 
-private def LamWF.bvarAppsRev_Aux :
+def LamWF.bvarAppsRev_Aux :
   LamWF ltv ⟨pushLCtxs (List.reverse lctx) (pushLCtx ty lctx'), LamTerm.bvar (List.length lctx), ty⟩ := by
   have tyeq : ty = pushLCtxs lctx.reverse (pushLCtx ty lctx') lctx.length := by
     rw [pushLCtxs_ge] <;> rw [List.length_reverse]
@@ -2955,7 +2959,7 @@ def LamWF.ofLamTerm {ltv : LamTyVal} :
 
 -- Of course `ofLamTerm` is sound with respect to `LamWF`. So, we
 --   only need to show that it's complete
-def LamWF.complete {ltv : LamTyVal} :
+theorem LamWF.complete {ltv : LamTyVal} :
   {j : LamJudge} → (wf : LamWF ltv j) → LamWF.ofLamTerm j.rterm = .some ⟨j.rty, wf⟩
 | .(_), @LamWF.ofAtom _ lctx n => rfl
 | .(_), @LamWF.ofEtom _ lctx n => rfl
@@ -2972,7 +2976,7 @@ def LamWF.complete {ltv : LamTyVal} :
   simp at IHFn; simp at IHArg
   rw [IHFn]; rw [IHArg]; simp; rw [LamSort.beq_refl]
 
-def LamTerm.lamCheck?_of_lamWF
+theorem LamTerm.lamCheck?_of_lamWF
   {ltv : LamTyVal} {lctx : Nat → LamSort} {t : LamTerm} {ty : LamSort} :
   LamWF ltv ⟨lctx, t, ty⟩ → t.lamCheck? ltv lctx = .some ty := by
   generalize JudgeEq : { lctx := lctx, rterm := t, rty := ty : LamJudge} = Judge

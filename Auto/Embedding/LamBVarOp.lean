@@ -1,4 +1,8 @@
-import Auto.Embedding.LamBase
+module
+
+public import Auto.Embedding.LamBase
+
+@[expose] public section
 
 namespace Auto.Embedding.Lam
 
@@ -83,7 +87,7 @@ theorem LamWF.mapBVarAt.correct (lval : LamValuation.{u}) {restoreDep : _}
   apply eq_of_heq; apply HEq.symm (HEq.trans (interp_bvar _) _)
   apply (coPairDepAt.ofCoPairDep covPD).right
 | .lam argTy body, .ofLam bodyTy wfBody => by
-  apply funext; intros x; dsimp [LamWF.interp]
+  apply funext; intros x
   apply Eq.trans (LamWF.mapBVarAt.correct _ covPD (.succ idx) _ _ wfBody)
   apply LamWF.interp_substLCtxTerm_rec
   apply restoreAtDep_succ_pushLCtxDep_Fn
@@ -466,7 +470,7 @@ theorem LamTerm.maxEVarSucc_bvarLower?
   (heq : LamTerm.bvarLower? t = .some t') : t'.maxEVarSucc = t.maxEVarSucc :=
   LamTerm.maxEVarSucc_bvarLowersIdx? heq
 
-private def getILSortString : LamBaseTerm → String
+def getILSortString : LamBaseTerm → String
 | .eq s      => s!"{s}"
 | .forallE s => s!"{s}"
 | .existE s  => s!"{s}"

@@ -1,7 +1,13 @@
-import Lean
-import Auto.Lib.LevelExtra
-import Auto.Lib.Containers
-import Auto.Lib.AbstractMVars
+module
+
+public import Lean
+public meta import Lean
+public import Auto.Lib.LevelExtra
+public import Auto.Lib.Containers
+public import Auto.Lib.AbstractMVars
+
+public section
+
 open Lean Elab Command
 
 namespace Auto
@@ -278,7 +284,7 @@ def Expr.instanceOf? (e₁ : Expr) (params : Array Name) (e₂ : Expr) : MetaM (
 syntax (name := getExprAndApply) "#getExprAndApply" "[" term "|" ident "]" : command
 
 @[command_elab Auto.getExprAndApply]
-unsafe def elabGetExprAndApply : CommandElab := fun stx =>
+meta unsafe def elabGetExprAndApply : CommandElab := fun stx =>
   runTermElabM fun _ => do
     match stx with
     | `(command | #getExprAndApply[ $t:term | $i:ident ]) => withRef stx <| do
@@ -323,28 +329,28 @@ unsafe def exprFromExpr (eToExpr : Expr) : TermElabM Expr := do
 
 syntax (name := lazyReduce) "#lazyReduce" term : command
 
-register_option lazyReduce.skipProof : Bool := {
+meta register_option lazyReduce.skipProof : Bool := {
   defValue := true
   descr    := "Whether to reduce proof when calling #lazyReduce"
 }
 
-register_option lazyReduce.skipType : Bool := {
+meta register_option lazyReduce.skipType : Bool := {
   defValue := true
   descr    := "Whether to reduce type when calling #lazyReduce"
 }
 
-register_option lazyReduce.logInfo : Bool := {
+meta register_option lazyReduce.logInfo : Bool := {
   defValue := true
   descr    := "Whether to print result of #reduce"
 }
 
-register_option lazyReduce.printTime : Bool := {
+meta register_option lazyReduce.printTime : Bool := {
   defValue := false
   descr    := "Whether to print result of #reduce"
 }
 
 open Meta in
-@[command_elab Auto.lazyReduce] def elabLazyReduce : CommandElab
+@[command_elab Auto.lazyReduce] meta def elabLazyReduce : CommandElab
   | `(#lazyReduce%$tk $term) => withoutModifyingEnv <| runTermElabM fun _ => Term.withDeclName `_reduce do
     let startTime ← IO.monoMsNow
     let e ← Term.elabTerm term none

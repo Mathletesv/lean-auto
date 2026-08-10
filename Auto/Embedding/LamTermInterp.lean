@@ -1,6 +1,11 @@
-import Auto.Embedding.LamSystem
-import Auto.Lib.MonadUtils
-import Auto.Lib.MetaState
+module
+
+public import Auto.Embedding.LamSystem
+public import Auto.Lib.MonadUtils
+public import Auto.Lib.MetaState
+
+@[expose] public section
+
 open Lean
 
 namespace Auto.Embedding.Lam

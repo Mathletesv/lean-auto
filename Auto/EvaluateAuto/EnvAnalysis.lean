@@ -1,5 +1,9 @@
-import Lean
-import Auto.EvaluateAuto.NameArr
+module
+
+public import Lean
+public import Auto.EvaluateAuto.NameArr
+
+public section
 
 open Lean
 

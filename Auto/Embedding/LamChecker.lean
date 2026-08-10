@@ -1,11 +1,16 @@
-import Auto.Embedding.LamTermInterp
-import Auto.Embedding.LamConv
-import Auto.Embedding.LamInference
-import Auto.Embedding.LamLCtx
-import Auto.Embedding.LamPrep
-import Auto.Embedding.LamBitVec
-import Auto.Embedding.LamInductive
-import Auto.Lib.BinTree
+module
+
+public import Auto.Embedding.LamTermInterp
+public import Auto.Embedding.LamConv
+public import Auto.Embedding.LamInference
+public import Auto.Embedding.LamLCtx
+public import Auto.Embedding.LamPrep
+public import Auto.Embedding.LamBitVec
+public import Auto.Embedding.LamInductive
+public import Auto.Lib.BinTree
+
+@[expose] public section
+
 open Lean
 
 namespace Auto.Embedding.Lam

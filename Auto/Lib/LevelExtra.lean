@@ -1,5 +1,10 @@
-import Lean
-import Auto.Lib.Containers
+module
+
+public import Lean
+public import Auto.Lib.Containers
+
+public section
+
 open Lean
 
 namespace Auto
