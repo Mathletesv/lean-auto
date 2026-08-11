@@ -72,12 +72,14 @@ theorem propne_equiv {a b : Prop} : (a ≠ b) ↔ (a ∨ b) ∧ (¬ a ∨ ¬ b) 
 
 theorem LamEquiv.not_true_equiv_false :
   LamEquiv R? lval lctx (.base .prop) (.mkNot (.base .trueE)) (.base .falseE) := by
+  dsimp only [LamBaseTerm.trueE, LamBaseTerm.falseE]
   exists LamWF.mkNot (.ofBase .ofTrueE); exists LamWF.ofBase .ofFalseE; intro lctxTerm
   simp only [LamWF.interp, LamBaseTerm.LamWF.interp]
   apply GLift.down.inj; apply eq_false; exact fun h => h .intro
 
 theorem LamEquiv.not_false_equiv_true :
   LamEquiv R? lval lctx (.base .prop) (.mkNot (.base .falseE)) (.base .trueE) := by
+  dsimp only [LamBaseTerm.trueE, LamBaseTerm.falseE]
   exists LamWF.mkNot (.ofBase .ofFalseE); exists LamWF.ofBase .ofTrueE; intro lctxTerm
   simp only [LamWF.interp, LamBaseTerm.LamWF.interp]
   apply GLift.down.inj; apply eq_true; exact id
@@ -187,7 +189,9 @@ theorem LamEquiv.true_eq_false_equiv_false?
   cases hbeq : t.beq (.mkEq (.base .prop) (.base .trueE) (.base .falseE))
   case true =>
     intro h; cases h; cases (LamTerm.eq_of_beq_eq_true hbeq)
-    cases wft.getFn.getFn.getBase; exists rfl, wft
+    cases wft.getFn.getFn.getBase
+    dsimp only [LamBaseTerm.trueE, LamBaseTerm.falseE] at wft ⊢
+    exists rfl, wft
     match wft with
     | .ofApp _ (.ofApp _ (.ofBase (.ofEq _)) (.ofBase .ofTrueE)) (.ofBase .ofFalseE) =>
       exists (.ofBase .ofFalseE); intro lctxTerm; apply GLift.down.inj
@@ -228,7 +232,9 @@ theorem LamEquiv.false_eq_true_equiv_false?
   cases hbeq : t.beq (.mkEq (.base .prop) (.base .falseE) (.base .trueE) )
   case true =>
     intro h; cases h; cases (LamTerm.eq_of_beq_eq_true hbeq)
-    cases wft.getFn.getFn.getBase; exists rfl, wft
+    cases wft.getFn.getFn.getBase
+    dsimp only [LamBaseTerm.trueE, LamBaseTerm.falseE] at wft ⊢
+    exists rfl, wft
     match wft with
     | .ofApp _ (.ofApp _ (.ofBase (.ofEq _)) (.ofBase .ofFalseE)) (.ofBase .ofTrueE) =>
       exists (.ofBase .ofFalseE); intro lctxTerm; apply GLift.down.inj

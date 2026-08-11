@@ -891,6 +891,9 @@ theorem LamWF.interp_instantiateAt.{u}
 | lctxTy, lctxTerm, wfArg, .ofBase b => rfl
 | lctxTy, lctxTerm, wfArg, .ofBVar n => by
   simp only [LamWF.interp, LamWF.instantiateAt, LamTerm.instantiateAt]
+  -- Since Lean v4.33.0, the equational lemmas for `LamWF.instantiateAt` are no
+  -- longer ι-reduced, so we reduce the `match` on `LamWF.ofBVar` by hand
+  conv => rhs; arg 5; whnf
   simp only [pushLCtxAt, pushLCtxAtDep, restoreAt, restoreAtDep, pushLCtx]
   match Nat.ble idx n with
   | true =>
@@ -919,10 +922,8 @@ theorem LamWF.interp_instantiateAt.{u}
     case eqSmall =>
       dsimp [interp]; apply interp_substLCtxTerm <;> rfl)
 | lctxTy, lctxTerm, wfArg, .ofApp argTy' HFn HArg =>
-  let IHFn := LamWF.interp_instantiateAt lval idx lctxTy lctxTerm wfArg HFn
-  let IHArg := LamWF.interp_instantiateAt lval idx lctxTy lctxTerm wfArg HArg
-  by simp only [LamWF.interp, LamTerm.instantiateAt, instantiateAt]
-     dsimp at IHFn; dsimp at IHArg; simp [IHFn, IHArg]
+  congr (LamWF.interp_instantiateAt lval idx lctxTy lctxTerm wfArg HFn)
+    (LamWF.interp_instantiateAt lval idx lctxTy lctxTerm wfArg HArg)
 
 def LamTerm.instantiate1 := LamTerm.instantiateAt 0
 
@@ -1080,13 +1081,9 @@ theorem LamWF.interp_resolveImport
   | .ofEtom _ => rfl
   | .ofBase b => LamBaseTerm.LamWF.interp_resolveImport _ lval b
   | .ofBVar n => rfl
-  | .ofLam s hwf => by
-    apply funext; intros x; simp only [interp, LamTerm.resolveImport, resolveImport]
-    rw [LamWF.interp_resolveImport _ _ hwf]
-  | .ofApp s wfFn wfArg => by
-    simp only [interp, LamTerm.resolveImport, resolveImport];
-    rw [LamWF.interp_resolveImport _ _ wfFn]
-    rw [LamWF.interp_resolveImport _ _ wfArg]
+  | .ofLam s hwf => funext (fun _ => LamWF.interp_resolveImport _ _ hwf)
+  | .ofApp s wfFn wfArg =>
+    congr (LamWF.interp_resolveImport _ _ wfFn) (LamWF.interp_resolveImport _ _ wfArg)
 
 theorem LamThmValid.resolveImport (H : LamThmValid R? lval lctx t) :
   LamThmValid R? lval lctx (t.resolveImport lval.toLamTyVal) := by
