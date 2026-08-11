@@ -77,7 +77,7 @@ def inegLift.{u} (m : GLift.{1, u} Int) :=
   GLift.up (Int.neg m.down)
 
 def iabsLift.{u} (m : GLift.{1, u} Int) :=
-  GLift.up (max m.down (-m.down))
+  GLift.up (ite (m.down < -m.down) (-m.down) m.down)
 
 def iaddLift.{u} (m n : GLift.{1, u} Int) :=
   GLift.up (Int.add m.down n.down)

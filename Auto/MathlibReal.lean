@@ -61,29 +61,43 @@ def interpRealConstAsUnlifted : RealConst → CoreM Expr
 | .rmax     => return .const ``Real.max []
 | .rmin     => return .const ``Real.min []
 
-def realConstSimpNFList : List (Name × Expr) :=
-let realc := mkConst ``Real
-[
-  (``Real.ofNat , mkApp2 (.const ``Nat.cast [.zero]) realc (mkConst ``Real.instNatCast)),
-  (``Real.ofInt , mkApp2 (.const ``Int.cast [.zero]) realc (mkConst ``Real.instIntCast)),
-  (``Real.neg   , mkApp2 (.const ``Neg.neg [.zero]) realc (mkConst ``Real.instNeg)),
-  (``Real.add   , mkApp4
-    (.const ``HAdd.hAdd [.zero, .zero, .zero]) realc realc realc
-    (mkApp2 (.const ``instHAdd [.zero]) realc (mkConst ``Real.instAdd))),
-  (``Real.sub   , mkApp4
-    (.const ``HSub.hSub [.zero, .zero, .zero]) realc realc realc
-    (mkApp2 (.const ``instHSub [.zero]) realc (mkConst ``Real.instSub))),
-  (``Real.mul   , mkApp4
-    (.const ``HMul.hMul [.zero, .zero, .zero]) realc realc realc
-    (mkApp2 (.const ``instHMul [.zero]) realc (mkConst ``Real.instMul))),
-  -- (``Real.div   , mkApp4
-  --   (.const ``HDiv.hDiv [.zero, .zero, .zero]) realc realc realc
-  --   (mkApp2 (.const ``instHDiv [.zero]) realc (mkConst ``Real.instDiv))),
-  (``Real.le    , mkApp2 (.const ``LE.le [.zero]) realc (mkConst ``Real.instLE)),
-  (``Real.lt    , mkApp2 (.const ``LT.lt [.zero]) realc (mkConst ``Real.instLT)),
-  (``Real.max   , mkApp2 (.const ``Max.max [.zero]) realc (mkConst ``Real.instMax)),
-  (``Real.min   , mkApp2 (.const ``Min.min [.zero]) realc (mkConst ``Real.instMin))
-]
+section CheckDefEq
+  def realConstSimpNFList : List (Name × Expr) :=
+    let realc := mkConst ``Real
+    [
+      (``Real.ofNat , mkApp2 (.const ``Nat.cast [.zero]) realc (mkConst ``Real.instNatCast)),
+      (``Real.ofInt , mkApp2 (.const ``Int.cast [.zero]) realc (mkConst ``Real.instIntCast)),
+      (``Real.neg   , mkApp2 (.const ``Neg.neg [.zero]) realc (mkConst ``Real.instNeg)),
+      (``Real.add   , mkApp4
+        (.const ``HAdd.hAdd [.zero, .zero, .zero]) realc realc realc
+        (mkApp2 (.const ``instHAdd [.zero]) realc (mkConst ``Real.instAdd))),
+      (``Real.sub   , mkApp4
+        (.const ``HSub.hSub [.zero, .zero, .zero]) realc realc realc
+        (mkApp2 (.const ``instHSub [.zero]) realc (mkConst ``Real.instSub))),
+      (``Real.mul   , mkApp4
+        (.const ``HMul.hMul [.zero, .zero, .zero]) realc realc realc
+        (mkApp2 (.const ``instHMul [.zero]) realc (mkConst ``Real.instMul))),
+      (``Real.div   , mkApp4
+        (.const ``HDiv.hDiv [.zero, .zero, .zero]) realc realc realc
+        (mkApp2 (.const ``instHDiv [.zero]) realc
+        (mkApp2 (.const ``DivInvMonoid.toDiv [.zero]) realc (.const ``Real.instDivInvMonoid [])))),
+      (``Real.le    , mkApp2 (.const ``LE.le [.zero]) realc (mkConst ``Real.instLE)),
+      (``Real.lt    , mkApp2 (.const ``LT.lt [.zero]) realc (mkConst ``Real.instLT)),
+      (``Real.max   , mkApp2 (.const ``Max.max [.zero]) realc (mkConst ``Real.instMax)),
+      (``Real.min   , mkApp2 (.const ``Min.min [.zero]) realc (mkConst ``Real.instMin))
+    ]
+
+  private def checkLamBaseTermSimpNFMap : MetaM Unit :=
+    for (name, e) in realConstSimpNFList do
+      if !(← Meta.isTypeCorrect e) then
+        throwError "{e} is not type correct"
+      let e' := mkConst name
+      if !(← Meta.withNewMCtxDepth (Meta.isDefEq e' e)) then
+        throwError "{e'} is not definitionally equal to {e}"
+
+  run_meta checkLamBaseTermSimpNFMap
+
+end CheckDefEq
 
 open Lam2D
 
@@ -91,7 +105,6 @@ initialize do
   realReconstructionExt.set (some {
     baseSort := .const ``Real []
     interpConst := interpRealConstAsUnlifted
-    simpNFList := realConstSimpNFList
   })
 
 open LamReif

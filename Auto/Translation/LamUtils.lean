@@ -182,7 +182,6 @@ namespace Lam2D
   structure RealReconstructionHandler where
     baseSort    : Expr
     interpConst : RealConst → CoreM Expr
-    simpNFList  : List (Name × Expr)
 
   initialize realReconstructionExt : IO.Ref (Option RealReconstructionHandler) ← IO.mkRef none
 

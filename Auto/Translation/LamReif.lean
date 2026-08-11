@@ -1234,8 +1234,6 @@ def reifMapLam0Arg2NoLit : Std.HashMap (Name × Name) (Expr × LamTerm) :=
   Std.HashMap.ofList [
     ((``NatCast.natCast, ``Int), (.const ``Int.ofNat [], .base .iofNat)),
     ((``Neg.neg, ``Int),         (.const ``Int.neg [], .base .ineg)),
-    /- **TODO**: Abs.abs does not exist and this conversion never runs -/
-    ((`Abs.abs, ``Int),          (.const ``Int.abs [], .base .iabs)),
     ((``LE.le, ``Nat),           (.const ``Nat.le [], .base .nle)),
     ((``LE.le, ``Int),           (.const ``Int.le [], .base .ile)),
     ((``LE.le, ``String),        (.const ``String.le [], .base .sle)),
@@ -1430,6 +1428,20 @@ def processLam0Arg3 (e fn arg₁ arg₂ _arg₃ : Expr) : MetaM (Option LamTerm)
                 return .some (.mkROfNat (.base (.natVal nv)))
               else
                 return .none
+        return .none
+      | .none => return .none
+  | .const `abs _ =>
+    match arg₁ with
+    | .const ``Int _ =>
+      if (← Meta.isDefEqD fn (.const `abs [.zero])) then
+        return .some (.base .iabs)
+      else
+        return .none
+    | _ => do
+      match ← realReifExt.get with
+      | .some h =>
+        if arg₁ == h.realTypeExpr && (← Meta.isDefEqD fn (.const `abs [.zero])) then
+          return .some (.base .rabs)
         return .none
       | .none => return .none
   | _ => return .none
