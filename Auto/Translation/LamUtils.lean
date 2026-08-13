@@ -204,7 +204,7 @@ namespace Lam2D
   | .int     => return .const ``Int []
   | .real    => do
     let .some h ← realReconstructionExt.get
-      | throwError "reals require `import Auto.MathlibReal`"
+      | throwError "Lean-auto is trying to use reals without importing the mathlib instantiation."
     return h.baseSort
   | .isto0 p =>
     match p with

@@ -163,7 +163,6 @@ instance : LawfulBEq LamBaseSort where
 | .xO .xH => GLift Empty
 | _       => GLift Empty
 
--- variable (R : Type) [RealTy R]
 variable (R? : Option ((R : Type) × RealTy R))
 
 @[reducible] def LamBaseSort.interp.{u} : LamBaseSort → Type u

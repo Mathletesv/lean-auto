@@ -1770,7 +1770,6 @@ section BuildChecker
     for (t, (e, _, ti, n)) in (← getAssertions).toList do
       let tExpr := Lean.toExpr ti
       let ieExpr := Expr.app (.const ``ImportEntry.valid []) tExpr
-      -- let inst ← Meta.synthInstance (← Meta.mkAppM ``RealTy #[R?Expr])
       let itEntry := Lean.mkApp4 (.const ``importTablePSigmaMk [u]) R?Expr chkValExpr ieExpr e
       importTable := importTable.insert n itEntry
       if t.maxLooseBVarSucc != 0 || t.maxEVarSucc != 0 then
@@ -1782,12 +1781,10 @@ section BuildChecker
       let ieExpr := Expr.app (.const ``ImportEntry.nonempty []) sExpr
       let (upFunc, _, _, sil) ← updownFunc s
       let inhLift := Lean.mkApp2 (.const ``Nonempty.intro [.succ u]) sil (.app upFunc inh)
-      -- let inst ← Meta.synthInstance (← Meta.mkAppM ``RealTy #[R?Expr])
       let itEntry := Lean.mkApp4 (.const ``importTablePSigmaMk [u]) R?Expr chkValExpr ieExpr inhLift
       importTable := importTable.insert n itEntry
       let vEntry := REntry.nonempty s
       importedFactsTree := importedFactsTree.insert n vEntry
-    -- let inst ← Meta.synthInstance (← Meta.mkAppM ``RealTy #[R?Expr])
     let psigmaβ := Lean.mkApp2 (.const ``importTablePSigmaβ [u]) R?Expr chkValExpr
     let type := Lean.mkApp2 (.const ``PSigma [.succ .zero, .zero])
       (.const ``ImportEntry []) psigmaβ
@@ -1815,7 +1812,6 @@ section BuildChecker
         | throwError "{decl_name%} :: {re} is not a `valid` entry"
       let vExpr := Lean.toExpr (← lookupREntryPos! re)
       let eqExpr ← Meta.mkAppM ``Eq.refl #[← Meta.mkAppM ``Option.some #[Lean.toExpr (lctx, t)]]
-      -- let inst ← Meta.synthInstance (← Meta.mkAppM ``RealTy #[R?Expr])
       let getEntry := Lean.mkApp8 (.const ``Checker.getValidExport_directReduce [u]) R?Expr
         (Lean.toExpr lctx) (Lean.toExpr t) cpvFVarExpr itExpr csExpr vExpr eqExpr
       let getEntry ← Meta.mkLetFVars #[cpvFVarExpr] getEntry
@@ -1847,7 +1843,6 @@ section BuildChecker
       let hLvtExpr ← Meta.mkAppM ``Eq.refl #[lvtExpr]
       let hLitExpr ← Meta.mkAppM ``Eq.refl #[litExpr]
       let heqExpr ← Meta.mkAppM ``Eq.refl #[← Meta.mkAppM ``Option.some #[Lean.toExpr (lctx, t)]]
-      -- let inst ← Meta.synthInstance (← Meta.mkAppM ``RealTy #[R?Expr])
       let getEntry := Lean.mkAppN (.const ``Checker.getValidExport_indirectReduce [u])
         #[R?Expr, cpvFVarExpr, itExpr, csExpr, vExpr, ifExpr, hImportExpr,
           lvtExpr, litExpr, hLvtExpr, hLitExpr, Lean.toExpr lctx, Lean.toExpr t, heqExpr]
@@ -1912,7 +1907,6 @@ section BuildChecker
       let heqNativeName ← mkNativeAuxDecl `lam_ssrefl_hEq (Lean.mkConst ``Bool) heqBoolExpr
       let heqRflPrf ← Meta.mkEqRefl (toExpr true)
       let heqExpr := mkApp3 (Lean.mkConst ``Lean.ofReduceBool) (Lean.mkConst heqNativeName) (toExpr true) heqRflPrf
-      -- let inst ← Meta.synthInstance (← Meta.mkAppM ``RealTy #[R?Expr])
       let getEntry := Lean.mkAppN (.const ``Checker.getValidExport_indirectReduce_reflection [u])
         #[R?Expr, cpvFVarExpr, itExpr, csExpr, vExpr, ifExpr, hImportExpr,
           lvtExpr, litExpr, hLvtExpr, hLitExpr, Lean.toExpr lctx, Lean.toExpr t, heqExpr]
