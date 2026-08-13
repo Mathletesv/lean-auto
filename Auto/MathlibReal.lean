@@ -25,7 +25,7 @@ noncomputable instance : RealTy ℝ := {}
 abbrev Real.ofNat (n : Nat) : Real := (n : Real)
 abbrev Real.ofInt (i : Int) := (i : Real)
 abbrev Real.neg (r : Real) := -r
-abbrev Real.abs (r : Real) := max r (-r) -- Does not currently work
+abbrev Real.abs (r : Real) := max r (-r)
 abbrev Real.add (a b : Real) := a + b
 abbrev Real.sub (a b : Real) := a - b
 abbrev Real.mul (a b : Real) := a * b
@@ -61,6 +61,43 @@ def interpRealConstAsUnlifted : RealConst → CoreM Expr
 | .rmax     => return .const ``Real.max []
 | .rmin     => return .const ``Real.min []
 
+open Lam2D
+
+initialize do
+  realReconstructionExt.set (some {
+    baseSort := .const ``Real []
+    interpConst := interpRealConstAsUnlifted
+  })
+
+open LamReif
+
+initialize do
+  realReifExt.set (some {
+    realTypeName := ``Real
+    realTypeExpr := .const ``Real []
+    arg2NoLit := [
+      ((``NatCast.natCast, ``Real), (.const ``Real.ofNat [], .base .rofNat)),
+      ((``IntCast.intCast, ``Real), (.const ``Real.ofInt [], .base .rofInt)),
+      ((``Neg.neg,  ``Real), (.const ``Real.neg [], .base .rneg)),
+      ((``LE.le,    ``Real), (.const ``Real.le [], .base .rle)),
+      ((``GE.ge,    ``Real), (.const ``Real.ge [], .rge)),
+      ((``LT.lt,    ``Real), (.const ``Real.lt [], .base .rlt)),
+      ((``GT.gt,    ``Real), (.const ``Real.gt [], .rgt)),
+      ((``Max.max,  ``Real), (.const ``Real.max [], .base .rmax)),
+      ((``Min.min,  ``Real), (.const ``Real.min [], .base .rmin))
+    ]
+    arg4NoLit := [
+      ((``HAdd.hAdd, ``Real, ``Real), (.const ``Real.add [], .base .radd)),
+      ((``HSub.hSub, ``Real, ``Real), (.const ``Real.sub [], .base .rsub)),
+      ((``HMul.hMul, ``Real, ``Real), (.const ``Real.mul [], .base .rmul)),
+      ((``HDiv.hDiv, ``Real, ``Real), (.const ``Real.div [], .base .rdiv))
+    ]
+    ofNatConst := .const ``Real.ofNat []
+    zeroConst  := mkApp2 (.const ``Zero.zero [.zero]) (.const ``Real []) (.const ``Real.instZero [])
+    oneConst   := mkApp2 (.const ``One.one   [.zero]) (.const ``Real []) (.const ``Real.instOne [])
+  })
+
+-- Real version of tests found in Translation/LamUtils.lean
 section CheckDefEq
   def realConstSimpNFList : List (Name × Expr) :=
     let realc := mkConst ``Real
@@ -98,42 +135,5 @@ section CheckDefEq
   run_meta checkLamBaseTermSimpNFMap
 
 end CheckDefEq
-
-open Lam2D
-
-initialize do
-  realReconstructionExt.set (some {
-    baseSort := .const ``Real []
-    interpConst := interpRealConstAsUnlifted
-  })
-
-open LamReif
-
-initialize do
-  realReifExt.set (some {
-    realTypeName := ``Real
-    realTypeExpr := .const ``Real []
-    arg2NoLit := [
-      ((``NatCast.natCast, ``Real), (.const ``Real.ofNat [], .base .rofNat)),
-      ((``IntCast.intCast, ``Real), (.const ``Real.ofInt [], .base .rofInt)),
-      ((``Neg.neg,  ``Real), (.const ``Real.neg [], .base .rneg)),
-      ((`Abs.abs,   ``Real), (.const ``Real.abs [], .base .rabs)),
-      ((``LE.le,    ``Real), (.const ``Real.le [], .base .rle)),
-      ((``GE.ge,    ``Real), (.const ``Real.ge [], .rge)),
-      ((``LT.lt,    ``Real), (.const ``Real.lt [], .base .rlt)),
-      ((``GT.gt,    ``Real), (.const ``Real.gt [], .rgt)),
-      ((``Max.max,  ``Real), (.const ``Real.max [], .base .rmax)),
-      ((``Min.min,  ``Real), (.const ``Real.min [], .base .rmin))
-    ]
-    arg4NoLit := [
-      ((``HAdd.hAdd, ``Real, ``Real), (.const ``Real.add [], .base .radd)),
-      ((``HSub.hSub, ``Real, ``Real), (.const ``Real.sub [], .base .rsub)),
-      ((``HMul.hMul, ``Real, ``Real), (.const ``Real.mul [], .base .rmul)),
-      ((``HDiv.hDiv, ``Real, ``Real), (.const ``Real.div [], .base .rdiv))
-    ]
-    ofNatConst := .const ``Real.ofNat []
-    zeroConst  := mkApp2 (.const ``Zero.zero [.zero]) (.const ``Real []) (.const ``Real.instZero [])
-    oneConst   := mkApp2 (.const ``One.one   [.zero]) (.const ``Real []) (.const ``Real.instOne [])
-  })
 
 end Auto.MathlibReal
